@@ -1,0 +1,406 @@
+openapi: 3.1.0
+info:
+  title: Messaging
+  description: "<p>API service for targeted or broadcast mailing to users within one\
+    \ brand. Can be used for operational, marketing, research and other purposes.</p><p>Service\
+    \ provides only \nHTTP endpoints and can be called only by logged in users/admins.</p>\n\
+    <p>Two types of messages are supported (Operational and Marketing).</p>\n\nService\
+    \ supports multiple languages. Language is selected by providing **x-pawa-language**\
+    \ in the header of request.\nFor storing user preferred language check **Preference**\
+    \ service.\n\n**Possible error codes used in ErrorResponse:**   \nINVALID_USER_IDS_FILE(66001,\
+    \ \"Invalid user ids file. Please upload %s file\"),   \nUSER_IDS_WITH_BROADCAST_MESSAGE(66002,\
+    \ \"Broadcast message should not contain user ids\"),  \nMISSING_USER_IDS_FOR_DIRECT_MESSAGE(66003,\
+    \ \"User ids are missing for direct message\") "
+  version: 0.315.0
+servers:
+- url: https://pawa-proxy.replit.app
+  description: Generated server url
+security:
+- Token: []
+  Brand: []
+tags:
+- name: User Messaging
+  description: API endpoints for retrieving and tracking messages by user.
+paths:
+  /api/messaging/v1/messages/list:
+    put:
+      tags:
+      - User Messaging
+      summary: Set new status for user messages
+      operationId: updateUserMessageStatuses
+      parameters:
+      - name: x-pawa-language
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserMessageStatusUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+    post:
+      tags:
+      - User Messaging
+      summary: Get specified page of user messages with sign-up date validation. Page
+        size is 15 messages
+      operationId: getUserMessages
+      parameters:
+      - name: x-pawa-language
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserMessageViewRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserMessageViewResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/messaging/v2/messages/active:
+    get:
+      tags:
+      - User Messaging
+      summary: Get counter for unread messages and messages with configured 'additional
+        view' for the currently logged-in user with sign-up date validation
+      operationId: getUserActiveMessagesV2
+      parameters:
+      - name: x-pawa-language
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountAndAdditionalViewMessagesResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    UserMessageStatusUpdateRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 507f191e810c19729de860ea
+        messageStatus:
+          type: string
+          enum:
+          - QUEUED
+          - DELIVERED
+          - SEEN
+          - CLICKED
+    UserMessageViewRequest:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          format: int32
+    AdditionalViewDto:
+      type: object
+      properties:
+        path:
+          type: string
+    UserMessageDto:
+      type: object
+      properties:
+        id:
+          type: string
+        messageText:
+          type: string
+        ctaText:
+          type: string
+        ctaLink:
+          type: string
+        messageType:
+          type: string
+        messageStatus:
+          type: string
+          enum:
+          - QUEUED
+          - DELIVERED
+          - SEEN
+          - CLICKED
+        startTime:
+          type: integer
+          format: int64
+          deprecated: true
+        startTimeUtc:
+          type: string
+          format: date-time
+        endTimeUtc:
+          type: string
+          format: date-time
+        additionalView:
+          $ref: "#/components/schemas/AdditionalViewDto"
+        expired:
+          type: boolean
+          readOnly: true
+    UserMessageViewResponse:
+      type: object
+      properties:
+        userMessages:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserMessageDto"
+        currentPage:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int64
+        newMessagesCount:
+          type: integer
+          format: int64
+    CountAndAdditionalViewMessagesResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+        pathMessages:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/UserMessageDto"
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

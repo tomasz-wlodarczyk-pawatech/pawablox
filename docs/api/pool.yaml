@@ -1,0 +1,903 @@
+openapi: 3.1.0
+info:
+  title: Pool
+  description: |+
+    # Pool Public API Documentation
+
+    This documentation provides details about the Pool API endpoints, their functionality, and usage.
+
+    ## What is a POOL?
+
+    A POOL (also known as a betting pool or jackpot) is a form of gambling where players place bets on the outcomes of multiple sporting events. The key characteristics of a POOL are:
+
+    - Multiple events are grouped together in a single betting opportunity
+    - Players must predict the outcomes of all events in the pool
+    - All stakes are collected into a prize pool
+    - The prize pool is distributed among winners according to predefined rules
+    - Prizes are typically larger than in traditional betting due to the difficulty of predicting all outcomes correctly
+    - Pools may include tiebreakers to determine winners when multiple players have the same number of correct predictions
+
+    Pools can be configured with different parameters such as:
+    - Number of events
+    - Types of events (e.g., football matches)
+    - Prize distribution structure
+    - Minimum stake amount
+    - Opening and closing times
+
+    ### Public API Functionality
+
+    The Public API provides the following functionality:
+
+    - **Pool Information**
+      - Get detailed information about a specific pool by ID
+      - Get a paginated list of currently active pools
+      - Get a paginated list of resulted (completed) pools
+
+    - **Betting**
+      - Place bets on pools with selections and stake amounts
+      - View ticket details and status
+
+    ## Authentication
+
+    - Requires authentication via the `x-pawa-brand` header and `x-pawa-token` header.
+
+    ## Error Codes
+
+    The API uses the following error codes to indicate specific error conditions.
+
+    ### Public API Error Codes
+
+    | Error Code | Description | Cause and Resolution |
+    |------------|-------------|---------------------|
+    |------------|-------------|---------------------|
+    | ENTITY_ID_IS_NULL | Entity ID is null | **Cause**: A required ID parameter was not provided in the request. **Resolution**: Ensure all required ID fields are included and have valid values. |
+    | ENTITY_WITH_ID_NOT_FOUND | Cannot find entity with specified ID | **Cause**: The requested entity (pool, ticket, etc.) does not exist with the provided ID. **Resolution**: Verify the ID is correct and the entity exists. |
+    | ENTITY_WITH_COMBINED_ID_NOT_FOUND | Cannot find entity with combined ID | **Cause**: An entity that requires multiple IDs for identification cannot be found. **Resolution**: Check that all parts of the composite ID are correct. |
+    | POOL_TICKET_NOT_FOUND | Cannot find ticket for specified user | **Cause**: The user has no ticket for the requested pool or the ticket ID is invalid. **Resolution**: Verify the user has placed a bet on this pool and the ticket ID is correct. |
+    | ENTITY_IS_NULL | Entity is null | **Cause**: A required entity object is null in the request. **Resolution**: Ensure all required objects are properly initialized and included in the request. |
+    | ENTITY_CANT_BE_NULL | Entity cannot be null | **Cause**: A critical entity that cannot be null was not provided. **Resolution**: Include the required entity in your request. |
+    | POOL_ALREADY_CLOSED | Pool is already closed | **Cause**: An attempt was made to place a bet or modify a pool that has already closed for betting. **Resolution**: Check the pool's closing time before attempting operations. |
+    | POOL_IN_UNCONFIRMED_STATE | Pool is in unconfirmed state | **Cause**: An operation was attempted on a pool that requires confirmation first. **Resolution**: The pool must be confirmed by an administrator before this operation can be performed. |
+    | POOL_IS_NOT_APPROVED | Pool is not approved | **Cause**: An operation was attempted on a pool that requires approval. **Resolution**: The pool must be approved by an administrator before this operation can be performed. |
+    | POOL_NOT_FOUND | Cannot find Pool with specified pool and jurisdiction | **Cause**: The requested pool does not exist for the specified jurisdiction. **Resolution**: Verify the pool ID and jurisdiction are correct. |
+    | POOL_JURISDICTION_NOT_FOUND | Cannot find Pool Jurisdiction with specified pool and jurisdiction | **Cause**: The pool exists but is not available for the specified jurisdiction. **Resolution**: Check if the pool is available in your jurisdiction. |
+    | EVENT_DETAIL_NOT_FOUND | Unable to find event detail | **Cause**: The details for a specific event could not be retrieved. **Resolution**: Verify the event ID is correct and the event exists. |
+    | EVENTS_ARE_CANCELLED | Cannot generate winning combination when all events are cancelled | **Cause**: All events in the pool have been cancelled, making it impossible to determine winners. **Resolution**: This is an exceptional situation; the pool may need to be cancelled or refunded. |
+    | EVENTS_HAS_SAME_IDS | List of events has same IDs | **Cause**: Duplicate event IDs were provided in the request. **Resolution**: Ensure each event in the request has a unique ID. |
+    | USER_NOT_FOUND | Failed to get user details | **Cause**: The user information could not be retrieved. **Resolution**: Verify the user exists and the authentication is correct. |
+    | UNSUPPORTED_VALUE | Unsupported value for specified parameter | **Cause**: A parameter value is not within the acceptable range or set of values. **Resolution**: Check the API documentation for valid parameter values. |
+    | VALIDATION_SELECTION_LEN_WRONG | Selection length is wrong | **Cause**: The number of selections in a bet does not match the required number for the pool. **Resolution**: Ensure your bet includes the correct number of selections for the pool type. |
+    | HITS_ARE_NULL | Hits are null | **Cause**: The system could not determine the number of correct predictions. **Resolution**: This is typically a server-side issue; contact support if persistent. |
+    | VALIDATION_COUNT_LE_ZERO | Count cannot be less than 0 | **Cause**: A count parameter was provided with a negative value. **Resolution**: Ensure all count parameters are zero or positive. |
+    | PRIZE_WITH_ZERO_MISTAKES_NOT_FOUND | Cannot find prize with 0 mistakes | **Cause**: The pool configuration does not include a prize for perfect predictions. **Resolution**: This is a configuration issue; contact support. |
+    | ACTION_IS_NOT_ALLOWED | Action is not allowed | **Cause**: The requested action is not permitted for the current user or in the current state. **Resolution**: Check if you have the necessary permissions and if the action is valid for the current state. |
+    | FAILED_TO_PROCESS | Failed to process | **Cause**: A general processing error occurred. **Resolution**: Check your request parameters and try again; contact support if persistent. |
+    | JACKPOT_CLOSED | Jackpot is closed | **Cause**: The jackpot pool is no longer accepting bets. **Resolution**: Check the pool's status and closing time. |
+    | INSUFFICIENT_FUNDS | You don't have enough money, please make a deposit | **Cause**: The user's account balance is too low to place the bet. **Resolution**: Add funds to your account before placing the bet. |
+    | WALLET_ERROR | Wallet error | **Cause**: An error occurred while processing the financial transaction. **Resolution**: Check your account status and try again; contact support if persistent. |
+    | LEDGER_ERROR | Ledger error | **Cause**: An error occurred in the financial ledger system. **Resolution**: This is typically a server-side issue; try again later or contact support. |
+    | TRANSACTION_ERROR_CLIENT_MESSAGE | Transaction failed. Please try again later | **Cause**: A temporary issue prevented the transaction from completing. **Resolution**: Wait a moment and try again; if persistent, contact support. |
+    | LEDGER_ROLLBACK_ERROR | Transaction with such related ID and related type has not been rolled back yet | **Cause**: A previous transaction reversal is still in progress. **Resolution**: Wait for the previous operation to complete before retrying. |
+    | LEDGER_FETCH_ERROR | Failed to get transactions from ledger | **Cause**: The system could not retrieve transaction history. **Resolution**: This is typically a server-side issue; try again later or contact support. |
+    | INVALID_RESULT_VALUE | Entered wrong outcome result | **Cause**: The provided result value is not valid for the event type. **Resolution**: Check the valid outcome values for this event type. |
+    | EMPTY_VALUE | Value cannot be empty | **Cause**: A required field was left empty. **Resolution**: Provide a value for all required fields. |
+    | INVALID_LANGUAGE_ID | Invalid language ID | **Cause**: The specified language is not supported. **Resolution**: Use one of the supported language codes. |
+    | POOL_TICKET_REQUIRES_TIEBREAKERS | Pool has tiebreakers but they were not supplied in a ticket purchase request | **Cause**: The pool requires tiebreaker selections, but none were provided. **Resolution**: Include tiebreaker selections in your bet. |
+    | TIEBREAKERS_DATA_IS_NULL | Pool has tiebreakers but their data was not provided | **Cause**: Tiebreaker data is missing from the request. **Resolution**: Include the required tiebreaker data in your request. |
+    | INVALID_TIEBREAKERS_IDS | Provided tiebreaker IDs do not match with the related to a specified pool ones | **Cause**: The tiebreaker IDs in the request don't match those configured for the pool. **Resolution**: Use the correct tiebreaker IDs for this pool. |
+    | POOL_DOES_NOT_HAVE_TIEBREAKERS | Specified pool does not have tiebreakers | **Cause**: Tiebreaker data was provided for a pool that doesn't use tiebreakers. **Resolution**: Remove tiebreaker data from your request. |
+    | TIEBREAKERS_NOT_FULLY_RESULTED | Some tiebreakers do not have submitted results yet | **Cause**: Not all tiebreakers have been resulted yet, preventing final settlement. **Resolution**: Wait for all tiebreaker results to be submitted. |
+    | INCOMPLETE_TIELOSERS_CONFIG | Tielosers config is incomplete | **Cause**: The tiebreaker configuration is missing required information. **Resolution**: This is a configuration issue; contact support. |
+    | JURISDICTION_NOT_FOUND_BY_BRAND | Jurisdiction not found by brand | **Cause**: The specified brand does not have a jurisdiction configured. **Resolution**: Verify the brand identifier is correct. |
+    | VALIDATION_INVALID_SELECTION_POSITION | Selection position cannot be less than 1 or greater than selection size | **Cause**: A selection position is outside the valid range. **Resolution**: Ensure all selection positions are within the valid range for the pool. |
+    | VALIDATION_DUPLICATE_SELECTION_POSITION | Does not allow duplicate selection position | **Cause**: The same position was selected multiple times. **Resolution**: Each position should be selected only once. |
+    | WRONG_POOL_STATUS | Provided status is not a valid Pool status | **Cause**: An invalid pool status was specified. **Resolution**: Use one of the valid pool status values. |
+    | VALIDATION_WRONG_SELECTION_OUTCOMES | Incorrect Selection outcome | **Cause**: The selected outcome is not valid for this event. **Resolution**: Choose a valid outcome for the event type. |
+    | EVENT_HAS_NO_THREE_WAY_MARKET | Event with IDs have no 1X2 market | **Cause**: The event does not support the 1X2 (home/draw/away) market type. **Resolution**: Use a different market type or select a different event. |
+    | NOT_VALID_ARGUMENTS | Request contains invalid arguments | **Cause**: One or more request parameters are invalid. **Resolution**: Check the API documentation for valid parameter formats and values. |
+    | CURRENCY_NOT_FOUND_BY_ID | Currency with ID not found | **Cause**: The specified currency ID does not exist. **Resolution**: Use a valid currency ID. |
+    | CURRENCY_NOT_FOUND_BY_CODE_AND_BRAND | Currency not found with code and brand | **Cause**: The specified currency is not available for the brand. **Resolution**: Use a currency that is supported by the brand. |
+    | UNKNOWN_SERVER_ERROR | Server could not retrieve information | **Cause**: An unexpected server error occurred. **Resolution**: This is a server-side issue; try again later or contact support. |
+    | POOL_SETTLEMENT_ERROR | Cannot settle ticket | **Cause**: An error occurred while settling the ticket. **Resolution**: This is typically a server-side issue; contact support. |
+    | TICKET_PROCESSING_IN_PROGRESS | Ticket processing in progress | **Cause**: The ticket is currently being processed and cannot be modified. **Resolution**: Wait for processing to complete before attempting further operations. |
+
+  contact:
+    name: betPawa
+    url: betpawa.com
+    email: betpawa@betpawa.com
+  version: 1.265.0
+servers:
+- url: https://pawa-proxy.replit.app
+security:
+- Token: []
+  Brand: []
+tags:
+- name: Pool Controller
+  description: API endpoints for retrieving pool information
+- name: Public API
+  description: Endpoints available for public users
+- name: Place Bet Controller
+  description: API endpoints for placing bets on pools
+- name: Admin API
+  description: Endpoints available for administrators only
+- name: Ticket Controller
+  description: API endpoints for retrieving user's pool tickets information
+paths:
+  /api/pool/v1/place-bet:
+    post:
+      tags:
+      - Public API
+      - Place Bet Controller
+      summary: Place bet for the pool
+      description: Allows a user to place a bet on a pool. Requires user authentication.
+      operationId: placeBet
+      parameters:
+      - name: deviceType
+        in: header
+        description: "Device type from which the bet is placed. Possible values: WEB,\
+          \ SMART_PHONE, FEATURE_PHONE, USSD, POINT_OF_SALES, APP"
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceBetRequest"
+        required: true
+      responses:
+        "200":
+          description: Bet successfully placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedTicketResponse"
+        "400":
+          description: Request has invalid entity or insufficient funds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - User authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - Brand: []
+      - Token: []
+  /api/pool/v1/ticket:
+    get:
+      tags:
+      - Ticket Controller
+      - Public API
+      summary: List user's tickets
+      description: Retrieves a paginated list of tickets for the authenticated user.
+        Supports pagination with skip and take parameters.
+      operationId: listTickets
+      parameters:
+      - name: skip
+        in: query
+        description: Number of records to skip for pagination
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+        example: 0
+      - name: take
+        in: query
+        description: Number of records to take (page size)
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 8
+          minimum: 1
+        example: 8
+      responses:
+        "200":
+          description: List of user's tickets successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTicketsResponse"
+        "401":
+          description: Unauthorized - User authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - Brand: []
+      - Token: []
+  /api/pool/v1/ticket/{id}:
+    get:
+      tags:
+      - Ticket Controller
+      - Public API
+      summary: Get ticket details by ID
+      description: Retrieves detailed information about a specific ticket by its ID
+        for the authenticated user.
+      operationId: getTicket
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the ticket
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ticket details successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedTicketResponse"
+        "400":
+          description: Ticket not found or invalid ticket ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - User authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - Brand: []
+      - Token: []
+  /api/pool/v1/pool/{id}:
+    get:
+      tags:
+      - Pool Controller
+      - Public API
+      summary: Get pool by ID
+      description: Retrieves detailed information about a specific pool by its ID.
+        The jurisdiction is determined from the user context.
+      operationId: get
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the pool
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Pool details successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoolResponse"
+        "400":
+          description: Pool not found for the given ID and jurisdiction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - Brand: []
+  /api/pool/v1/pool/resulted:
+    get:
+      tags:
+      - Pool Controller
+      - Public API
+      summary: Get list of resulted pools
+      description: Retrieves a paginated list of pools that have been resulted (completed).
+        Supports pagination with skip and take parameters.
+      operationId: results
+      parameters:
+      - name: skip
+        in: query
+        description: Number of records to skip for pagination
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+        example: 0
+      - name: take
+        in: query
+        description: Number of records to take (page size)
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+        example: 10
+      responses:
+        "200":
+          description: List of resulted pools successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultedPoolsResponse"
+        "500":
+          description: Server error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - Brand: []
+  /api/pool/v1/pool/active:
+    get:
+      tags:
+      - Pool Controller
+      - Public API
+      summary: Get list of active pools
+      description: Retrieves a paginated list of currently active pools. Supports
+        pagination with skip and take parameters.
+      operationId: actives
+      parameters:
+      - name: skip
+        in: query
+        description: Number of records to skip for pagination
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+        example: 0
+      - name: take
+        in: query
+        description: Number of records to take (page size)
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+        example: 10
+      responses:
+        "200":
+          description: List of active pools successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivePoolsResponse"
+        "500":
+          description: Server error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - Brand: []
+components:
+  schemas:
+    PlaceBetItemDto:
+      type: object
+      description: Selection for a single event in a pool
+      properties:
+        position:
+          type: integer
+          format: int32
+          description: Position of the event in the pool (1-based index)
+          example: 1
+        outcomes:
+          type: array
+          description: "List of selected outcomes for the event (1=Home, 2=Draw, 3=Away)"
+          example:
+          - 1
+          - 2
+          items:
+            type: integer
+            format: int32
+    PlaceBetRequest:
+      type: object
+      description: "Bet details including pool ID, selections, and stake amount"
+      properties:
+        poolId:
+          type: string
+          description: The unique identifier of the pool to bet on
+          example: 123
+        uniqueTicketId:
+          type: string
+          description: A unique identifier for the ticket to prevent duplicate submissions
+          example: unique-ticket-id-123
+          maxLength: 70
+          minLength: 0
+        selections:
+          type: array
+          description: List of selections for each event in the pool
+          items:
+            $ref: "#/components/schemas/PlaceBetItemDto"
+        tiebreakers:
+          type: array
+          description: List of tiebreaker values if the pool has tiebreakers
+          items:
+            $ref: "#/components/schemas/PlaceBetTiebreakerDto"
+    PlaceBetTiebreakerDto:
+      type: object
+      description: Tiebreaker value for a pool
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier of the tiebreaker
+          example: 1
+        value:
+          type: integer
+          format: int32
+          description: The value provided for the tiebreaker
+          example: 3
+    DetailedTicketResponse:
+      type: object
+      description: Detailed information about a ticket
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the ticket
+          example: 123456
+        purchaseDate:
+          type: string
+          format: date-time
+          description: The date and time when the ticket was purchased
+          example: 2023-01-01T12:00:00Z
+        pool:
+          $ref: "#/components/schemas/PoolDto"
+          description: Information about the pool the ticket was purchased for
+        status:
+          type: string
+          description: Current status of the ticket
+          enum:
+          - PENDING
+          - LOST
+          - WON
+          - CANCELLED
+        payoutDetails:
+          $ref: "#/components/schemas/PayoutDetails"
+          description: Details about any payouts for the ticket
+        rows:
+          type: array
+          description: List of rows (selections) in the ticket
+          items:
+            $ref: "#/components/schemas/TicketRow"
+        tiebreaker:
+          $ref: "#/components/schemas/TicketTiebreaker"
+          description: Tiebreaker information if applicable
+        freeTicketsUsed:
+          type: integer
+          format: int32
+          description: Number of free tickets used for this purchase
+          example: 0
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        started:
+          type: boolean
+        live:
+          type: boolean
+        startDate:
+          type: string
+          format: date-time
+        competition:
+          type: string
+    PayoutDetails:
+      type: object
+      description: Details about payouts for a ticket
+      properties:
+        prize:
+          type: number
+          description: The prize amount won
+          example: 100.0
+        payout:
+          type: number
+          description: The actual payout amount after taxes
+          example: 80.0
+        tax:
+          type: number
+          description: The tax amount deducted from the prize
+          example: 20.0
+        payoutTime:
+          type: string
+          format: date-time
+          description: The date and time when the payout was processed
+          example: 2023-01-01T12:00:00
+        hitCountMax:
+          type: integer
+          format: int32
+          description: The maximum number of hits achieved
+          example: 10
+    PoolDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        maxPrize:
+          type: number
+        fee:
+          type: number
+        minimumCorrectWin:
+          type: integer
+          format: int32
+        type:
+          type: string
+          description: Type of pool
+          enum:
+          - MULTI_EVENTS
+          - SINGLE_EVENT
+          - FREE_FORM
+          - MULTIJURISDICTION
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - CLOSED
+          - CANCELLED
+        openTime:
+          type: string
+          format: date-time
+        closeTime:
+          type: string
+          format: date-time
+        eventId:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/RowDto"
+        rowCount:
+          type: integer
+          format: int32
+        tiebreakers:
+          $ref: "#/components/schemas/TiebreakersDto"
+        prizes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrizeSummaryDto"
+        settlementInfo:
+          $ref: "#/components/schemas/PoolSettlementInfo"
+        confirmed:
+          type: boolean
+    PoolSettlementInfo:
+      type: object
+      properties:
+        settled:
+          type: boolean
+        hasWinners:
+          type: boolean
+    PrizeSummaryDto:
+      type: object
+      properties:
+        seed:
+          type: number
+        rolledOver:
+          type: number
+        wonPerTicket:
+          type: number
+        wonTickets:
+          type: integer
+          format: int32
+        taxAmount:
+          type: number
+        mistakes:
+          type: integer
+          format: int32
+    PublicOutcomeDto:
+      type: object
+      properties:
+        text:
+          type: string
+        position:
+          type: integer
+          format: int32
+        odds:
+          type: number
+    Result:
+      type: object
+      properties:
+        text:
+          type: string
+        scores:
+          $ref: "#/components/schemas/Scores"
+        cancelled:
+          type: boolean
+        positionWon:
+          type: integer
+          format: int32
+    RowDto:
+      type: object
+      properties:
+        position:
+          type: integer
+          format: int32
+        name:
+          type: string
+        event:
+          $ref: "#/components/schemas/Event"
+        result:
+          $ref: "#/components/schemas/Result"
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicOutcomeDto"
+    Scores:
+      type: object
+      properties:
+        scoreHome:
+          type: integer
+          format: int32
+        scoreAway:
+          type: integer
+          format: int32
+    TicketRow:
+      type: object
+      properties:
+        position:
+          type: integer
+          format: int32
+        outcomes:
+          type: array
+          items:
+            type: integer
+            format: int32
+    TicketTiebreaker:
+      type: object
+      properties:
+        result:
+          $ref: "#/components/schemas/TicketTiebreakerResult"
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TiebreakerAnswer"
+    TicketTiebreakerResult:
+      type: object
+      properties:
+        tiebreakerWinner:
+          type: boolean
+    TiebreakerAnswer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        answer:
+          type: integer
+          format: int32
+    TiebreakerDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        position:
+          type: integer
+          format: int32
+        question:
+          type: string
+        correctAnswer:
+          type: integer
+          format: int32
+    TiebreakerSideStatistics:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+        payout:
+          type: number
+    TiebreakersDto:
+      type: object
+      properties:
+        statistics:
+          $ref: "#/components/schemas/TiebreakersStatistics"
+        tiebreakers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TiebreakerDto"
+    TiebreakersStatistics:
+      type: object
+      properties:
+        winners:
+          $ref: "#/components/schemas/TiebreakerSideStatistics"
+        losers:
+          $ref: "#/components/schemas/TiebreakerSideStatistics"
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    ListedTicketDto:
+      type: object
+      description: Summary information about a ticket for listing purposes
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the ticket
+          example: 123456
+        purchaseDate:
+          type: string
+          format: date-time
+          description: The date and time when the ticket was purchased
+          example: 2023-01-01T12:00:00Z
+        pool:
+          $ref: "#/components/schemas/PoolMinimumDetailsDto"
+          description: Minimal information about the pool the ticket was purchased
+            for
+        status:
+          type: string
+          description: Current status of the ticket
+          enum:
+          - PENDING
+          - LOST
+          - WON
+          - CANCELLED
+        payoutDetails:
+          $ref: "#/components/schemas/PayoutDetails"
+          description: Details about any payouts for the ticket
+        rows:
+          type: integer
+          format: int32
+          description: Number of rows (selections) in the ticket
+          example: 1
+    PoolMinimumDetailsDto:
+      type: object
+      description: Minimal information about a pool
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the pool
+          example: 123
+        name:
+          type: string
+          description: The name of the pool
+          example: Weekend Special
+        type:
+          type: string
+          description: The type of the pool
+          enum:
+          - MULTI_EVENTS
+          - SINGLE_EVENT
+          - FREE_FORM
+          - MULTIJURISDICTION
+        fee:
+          type: number
+          description: The entry fee for the pool
+          example: 10.0
+        currencyCode:
+          type: string
+          description: The currency code for monetary values
+          example: USD
+        maxPrize:
+          type: number
+          description: The maximum prize available in the pool
+          example: 1000.0
+        rowCount:
+          type: integer
+          format: int32
+          description: The number of rows (events) in the pool
+          example: 10
+    UserTicketsResponse:
+      type: object
+      description: Response containing a list of user's tickets
+      properties:
+        tickets:
+          type: array
+          description: List of user's tickets
+          items:
+            $ref: "#/components/schemas/ListedTicketDto"
+        hasMore:
+          type: boolean
+          description: Indicates if there are more tickets available beyond the current
+            page
+          example: true
+    MarketingDto:
+      type: object
+      properties:
+        priorityOrder:
+          type: integer
+          format: int32
+        presentation:
+          type: string
+    PoolResponse:
+      type: object
+      description: Response containing detailed information about a pool
+      properties:
+        pool:
+          $ref: "#/components/schemas/PoolDto"
+          description: Information about the pool
+        marketing:
+          $ref: "#/components/schemas/MarketingDto"
+          description: Marketing information related to the pool
+        user:
+          $ref: "#/components/schemas/PoolUserDto"
+          description: User-specific information related to the pool
+    PoolUserDto:
+      type: object
+      properties:
+        freeTicketCount:
+          type: integer
+          format: int32
+    ResultedPoolsResponse:
+      type: object
+      description: Response containing a list of resulted (completed) pools
+      properties:
+        list:
+          type: array
+          description: List of resulted pools
+          items:
+            $ref: "#/components/schemas/PoolResponse"
+        total:
+          type: integer
+          format: int64
+          description: Total number of resulted pools available
+          example: 10
+    ActivePoolsResponse:
+      type: object
+      description: Response containing a list of active pools
+      properties:
+        list:
+          type: array
+          description: List of active pools
+          items:
+            $ref: "#/components/schemas/PoolResponse"
+        total:
+          type: integer
+          format: int64
+          description: Total number of active pools available
+          example: 10
+  securitySchemes:
+    Admin-Token:
+      type: apiKey
+      name: x-pawa-token-admin
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: header

@@ -1,0 +1,478 @@
+openapi: 3.1.0
+info:
+  title: Preference
+  description: "Preference service is providing:\n* User derived statistics like logins\
+    \ count, last login, kyc verified etc.\n* User related static data like phone\
+    \ number, signed up date etc.\n* Brand related data like supported languages,\
+    \ currency, country etc.\n\nUser derived data endpoints can be used to save any\
+    \ user related data that is needed which will be stored as key:value format.\n\
+    One of predefined keys in user derived data is **language** which stores users\
+    \ preferred language. \nLanguage is stored in [ISO 639-1 format](https://en.wikipedia.org/wiki/ISO_639-1).\
+    \ Its value may be used on backend, \nfor example sending sms about forgotten\
+    \ password. If value is not set then default language is English (code = **en**).\n"
+  version: 1.180.0
+servers:
+  - url: https://pawa-proxy.replit.app
+    description: Generated server url
+security:
+  - Token: []
+    Brand: []
+tags:
+  - name: Component data
+    description: Aggregation of data from multiple services
+  - name: Preregistration
+    description: Preregisters users in new markets
+  - name: User derived data
+    description: Derived values for specific user
+paths:
+  /api/preference/v1/user-derived-data:
+    get:
+      tags:
+        - User derived data
+      summary: Get all user data
+      description: Return all derived data for current user
+      operationId: getUserDerivedData
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDerivedDataResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+    put:
+      tags:
+        - User derived data
+      summary: Update specified user data
+      description: Add or update user derived value. If key exists then value will
+        be overridden
+      operationId: addUserDerivedData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddUserDerivedDataRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/preference/v1/preregistration:
+    put:
+      tags:
+        - Preregistration
+      summary: Preregister user
+      description: Preregister user in new market
+      operationId: preregisterUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreregistrationRequest"
+        required: true
+      responses:
+        "200":
+          description: User preregistered successfully
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/preference/v1/component-data:
+    post:
+      tags:
+        - Component data
+      summary: Aggregates and returns initial settings for front-end and user derived
+        data as JSON object
+      operationId: componentData
+      parameters:
+        - name: x-pawa-language
+          in: header
+          required: false
+          schema:
+            type: string
+            default: en
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComponentDataRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: "#/components/schemas/JsonNode"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/preference/v1/user-derived-data/{data-key}:
+    get:
+      tags:
+        - User derived data
+      summary: Get specified user data
+      description: Return derived data by key for current user
+      operationId: getUserDerivedDataByKey
+      parameters:
+        - name: data-key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDerivedDataByKeyResponse"
+        "404":
+          description: The specified resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    AddUserDerivedDataRequest:
+      type: object
+      description: Request DTO for adding or updating public user derived data
+      properties:
+        key:
+          type: string
+          description: Use service/team/brand prefix to avoid colliding with already
+            existing keys
+          example: language
+        value:
+          type: string
+          description: Desired value for specified field. Can't be empty
+          example: en
+      required:
+        - key
+        - value
+    PreregistrationRequest:
+      type: object
+      description: Data transfer object for preregistration request
+      example:
+        phoneNumber: "+1234567890"
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number in E.164 format
+          example: "+1234567890"
+      required:
+        - phoneNumber
+    ComponentDataRequest:
+      type: object
+      description: Request specified components from component data
+      properties:
+        components:
+          type: array
+          description: Set of component names to load
+          items:
+            type: string
+          uniqueItems: true
+    JsonNode:
+      type: object
+    UserDerivedDataResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: string
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    UserDerivedDataByKeyResponse:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

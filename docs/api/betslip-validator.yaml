@@ -1,0 +1,501 @@
+openapi: 3.1.0
+info:
+  title: Betslip Validator API
+  description: HTTP API for placing bets and checking bet status
+  version: "1.0"
+servers:
+- url: https://pawa-proxy.replit.app
+  description: Generated server url
+security:
+- Token: []
+  Brand: []
+paths:
+  /api/betslip/validator/v1/place-bet/virtual:
+    post:
+      tags:
+      - Place Bet API
+      summary: Place bet for virtual games
+      description: Creates a virtual betslip. Response contains betslip identifier
+        when placement succeeds
+      operationId: placebetVirtual
+      parameters:
+      - name: x-pawa-language
+        in: header
+        description: Preferred language
+        required: false
+        schema:
+          type: string
+          default: en
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceBetRequest"
+        required: true
+      responses:
+        "200":
+          description: 'Bet response. Betslip id set if bet was placed or attemptId
+            if bet awaits verification '
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BetPlacementResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/validator/v1/place-bet/real:
+    post:
+      tags:
+      - Place Bet API
+      summary: Place bet for real games
+      description: Creates a real betslip. Response contains betslip identifier when
+        placement succeeds
+      operationId: placeBetReal
+      parameters:
+      - name: x-pawa-language
+        in: header
+        description: Preferred language
+        required: false
+        schema:
+          type: string
+          default: en
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceBetRequest"
+        required: true
+      responses:
+        "200":
+          description: 'Bet response. Betslip id set if bet was placed or attemptId
+            if bet awaits verification '
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BetPlacementResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/validator/v1/place-bet/check-status/{attemptId}:
+    get:
+      tags:
+      - Place Bet API
+      summary: Check bet status by attempt id
+      description: Used to verify whether an asynchronous bet placement finished successfully
+      operationId: checkBetPlacementStatus
+      parameters:
+      - name: attemptId
+        in: path
+        description: Identifier returned from initial bet placement
+        required: true
+        schema:
+          type: string
+      - name: userUuid
+        in: header
+        description: Unique user identifier
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: 'Bet response. Betslip id set if bet was placed or attemptId
+            if bet awaits verification '
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BetPlacementResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    BetItemRequest:
+      type: object
+      properties:
+        selectionId:
+          type: integer
+          format: int64
+        price:
+          type: string
+        eligibleForBonus:
+          type: boolean
+    CutPlusPayoutRequest:
+      type: object
+      properties:
+        miss:
+          type: integer
+          format: int32
+        payout:
+          type: number
+    CutPlusRequest:
+      type: object
+      properties:
+        serverSideCalculation:
+          type: boolean
+        templateId:
+          type: string
+        cut:
+          type: integer
+          format: int32
+        cutPlusPayout:
+          type: array
+          items:
+            $ref: "#/components/schemas/CutPlusPayoutRequest"
+    PlaceBetRequest:
+      type: object
+      properties:
+        stake:
+          type: number
+        legBonusSchemeId:
+          type: integer
+          format: int32
+          description: Leg Bonus Scheme ID that was used for the applying bonus
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetItemRequest"
+        stakeFormat:
+          type: string
+          description: |
+            STAKE - Tax is calculated on top of the stake. The final amount paid is the stake plus the tax.
+            AMOUNT - The stake includes tax (i.e., it’s the gross amount). The netStake is extracted from it, after tax deduction.
+          enum:
+          - STAKE
+          - AMOUNT
+        uuid:
+          type: string
+          description: "Unique bet identifier (aka attempt ID). Used for asynchronous\
+            \ bet placement, and deduplication"
+        acceptAnyPrice:
+          type: boolean
+          description: true if user accept any selection's price changes
+        userState:
+          $ref: "#/components/schemas/UserState"
+        campaign:
+          type: string
+        cutPlus:
+          $ref: "#/components/schemas/CutPlusRequest"
+        bookingCode:
+          type: string
+          description: BookingCode that was used for the creation of this bet request
+        calculatorsVersion:
+          type: string
+          description: |-
+            Version of calculators used on FE side. Calculators are used for cutPlus, dynamicBonus, etc.
+            Examples: 'V1', 'V2', etc. Can be null.
+            In case if version is not found on backend or it's null, backend uses the latest version of calculators.
+    UserState:
+      type: object
+      properties:
+        cashoutable:
+          type: boolean
+        eligibleForBonus:
+          type: boolean
+    ChangedOdds:
+      type: object
+      properties:
+        selectionId:
+          type: integer
+          format: int64
+        active:
+          type: boolean
+        newPrice:
+          type: number
+        live:
+          type: boolean
+    Payload:
+      type: object
+      properties:
+        changedPrices:
+          type: array
+          description: In case of validation failed by changed prices
+          items:
+            $ref: "#/components/schemas/ChangedOdds"
+        rejectedPrices:
+          type: array
+          description: In case validation failed by limit validation
+          items:
+            $ref: "#/components/schemas/RejectedOverLimitOdds"
+        cashoutAvailable:
+          type: boolean
+          description: During cashout validation error
+        nonCashoutablePrices:
+          type: array
+          description: During cashout validation error
+          items:
+            type: integer
+            format: int32
+    PlaceBetErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        uuid:
+          type: string
+          description: Error uuid for log tracing
+        params:
+          type: array
+          description: Additional metadata for error
+          items:
+            type: string
+        payload:
+          $ref: "#/components/schemas/Payload"
+          description: Payload for the validation errors
+    RejectedOverLimitOdds:
+      type: object
+      properties:
+        selectionId:
+          type: integer
+          format: int64
+        maxStake:
+          type: number
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    BetPlacementResponse:
+      type: object
+      properties:
+        attemptId:
+          type: string
+        betslipId:
+          type: string
+        betslipUuid:
+          type: string
+          format: uuid
+        timeoutSeconds:
+          type: integer
+          format: int64
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Admin-token:
+      type: apiKey
+      name: x-pawa-token-admin
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

@@ -1,0 +1,986 @@
+openapi: 3.1.0
+info:
+  title: betslip-viewer
+  description: ""
+  version: 0.142.0
+servers:
+- url: https://pawa-proxy.replit.app
+  description: Generated server url
+security:
+- Token: []
+  Brand: []
+paths:
+  /api/betslip/view/v1/betslip/virtual:
+    get:
+      tags:
+      - Betslip Viewer Legacy API
+      summary: List of virtual betslips (paged) for the authenticated user
+      operationId: getVirtualBetslips
+      parameters:
+      - name: skip
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: take
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LegacyUserBetslipsResponsePaged"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/view/v1/betslip/virtual-by-id/{id}:
+    get:
+      tags:
+      - Betslip Viewer Legacy API
+      summary: Get a betslip by ID for the authenticated user
+      operationId: getById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BetslipLegacyDetails"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/view/v1/betslip/sharing/get-code/{id}:
+    get:
+      tags:
+      - Betslip Viewer Legacy Share API
+      summary: Get share code for real betslip
+      operationId: getCodeForRealById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ShareCodeResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/view/v1/betslip/sharing/get-by-code/{code}:
+    get:
+      tags:
+      - Betslip Viewer Legacy Share API
+      summary: Get share code for real betslip
+      operationId: getRealByCode
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BetslipLegacyDetails"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/view/v1/betslip/settled:
+    get:
+      tags:
+      - Betslip Viewer Legacy API
+      summary: List of settled betslips (paged) for the authenticated user
+      operationId: getSettledBetslips
+      parameters:
+      - name: skip
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: take
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LegacyUserBetslipsResponsePaged"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/view/v1/betslip/real-by-id/{id}:
+    get:
+      tags:
+      - Betslip Viewer Legacy API
+      summary: Get a real betslip by ID for the authenticated user
+      operationId: getRealById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BetslipLegacyDetails"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/betslip/view/v1/betslip/pending:
+    get:
+      tags:
+      - Betslip Viewer Legacy API
+      summary: List of pending betslips (paged) for the authenticated user
+      operationId: getPendingBetslips
+      parameters:
+      - name: skip
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: take
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: x-pawa-language
+        in: header
+        required: false
+        schema:
+          type: string
+          default: en
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LegacyUserBetslipsResponsePaged"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    BetItemDetailOddsResponse:
+      type: object
+      properties:
+        itemId:
+          type: integer
+          format: int64
+        status:
+          type: string
+        price:
+          type: number
+        wasInPlay:
+          type: boolean
+        resultText:
+          type: string
+        selection:
+          $ref: "#/components/schemas/Selection"
+        cashoutable:
+          type: boolean
+        twoUp:
+          type: boolean
+        cancellationReason:
+          type: string
+    BetslipCashoutInfo:
+      type: object
+      properties:
+        cashoutable:
+          type: boolean
+        result:
+          $ref: "#/components/schemas/CashoutPayoutResponse"
+    BetslipLegacyDetails:
+      type: object
+      properties:
+        id:
+          type: string
+        uuid:
+          type: string
+        placed:
+          type: string
+          format: date-time
+        settled:
+          type: string
+          format: date-time
+        amount:
+          type: number
+        stake:
+          type: number
+        status:
+          type: string
+          enum:
+          - PENDING
+          - CANCELLED
+          - CASHOUT
+          - LOST
+          - WON
+          - PENDING_CUT
+          - WIN_CUT_PLUS
+        payout:
+          $ref: "#/components/schemas/PayoutDetails"
+        settlementState:
+          $ref: "#/components/schemas/SettlementState"
+        currencyCode:
+          type: string
+        deviceType:
+          type: string
+        selections:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetItemDetailOddsResponse"
+        betslipType:
+          type: string
+          enum:
+          - REAL
+          - VIRTUAL
+        virtualInfo:
+          $ref: "#/components/schemas/VirtualInfo"
+        cashoutInfo:
+          $ref: "#/components/schemas/BetslipCashoutInfo"
+        taxInfo:
+          $ref: "#/components/schemas/BetslipTaxInfo"
+        cutPlusInfo:
+          $ref: "#/components/schemas/CutPlusDetails"
+    BetslipTaxInfo:
+      type: object
+      properties:
+        amount:
+          type: number
+        stakeTax:
+          type: number
+        enabled:
+          type: boolean
+        stakeTaxEnabled:
+          type: boolean
+        percentage:
+          type: number
+        type:
+          type: string
+          enum:
+          - NET
+          - GROSS
+          - WHT_NET
+          - STAKE
+          - WHT_GROSS
+          - WHT_NET_TIERED
+        whtOffset:
+          type: boolean
+          deprecated: true
+        compensationType:
+          type: string
+        compensationAmount:
+          type: number
+        compensationAmountTax:
+          type: number
+    CashoutPayoutResponse:
+      type: object
+      properties:
+        gross:
+          type: number
+        net:
+          type: number
+        tax:
+          type: number
+    CutPlusDetails:
+      type: object
+      properties:
+        templateId:
+          type: string
+        activeCutCount:
+          type: integer
+          format: int32
+        generatedCuts:
+          type: array
+          items:
+            $ref: "#/components/schemas/CutPlusOfferDetails"
+    CutPlusOfferDetails:
+      type: object
+      properties:
+        miss:
+          type: integer
+          format: int32
+        gross:
+          type: number
+        net:
+          type: number
+        tax:
+          type: number
+    Handicap:
+      type: object
+      properties:
+        value:
+          type: string
+        type:
+          type: string
+          enum:
+          - NORMAL
+          - ASIAN
+          - EUROPEAN
+        text:
+          type: string
+    IdName:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    LegacyUserBetslipsResponsePaged:
+      type: object
+      properties:
+        betslips:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetslipLegacyDetails"
+        hasMore:
+          type: boolean
+    Market:
+      type: object
+      properties:
+        typeId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        displayName:
+          type: string
+        handicap:
+          $ref: "#/components/schemas/Handicap"
+    PayoutDetails:
+      type: object
+      properties:
+        payout:
+          type: number
+        grossPossibleWin:
+          type: number
+        netPossibleWin:
+          type: number
+        bonus:
+          type: number
+        bonusType:
+          type: string
+        oddsMultiplier:
+          type: number
+        multipliedOdds:
+          type: number
+        totalOdds:
+          type: number
+    Selection:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        category:
+          $ref: "#/components/schemas/IdName"
+        region:
+          $ref: "#/components/schemas/IdName"
+        competition:
+          $ref: "#/components/schemas/IdName"
+        event:
+          $ref: "#/components/schemas/IdName"
+        market:
+          $ref: "#/components/schemas/Market"
+        inPlay:
+          type: boolean
+        starts:
+          type: string
+          format: date-time
+    SettlementState:
+      type: object
+      properties:
+        settled:
+          type: integer
+          format: int32
+        total:
+          type: integer
+          format: int32
+        live:
+          type: integer
+          format: int32
+    VirtualInfo:
+      type: object
+      properties:
+        seasonId:
+          type: integer
+          format: int64
+        seasonName:
+          type: string
+        roundId:
+          type: integer
+          format: int64
+        roundName:
+          type: string
+    ShareCodeResponse:
+      type: object
+      properties:
+        code:
+          type: string
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Admin-token:
+      type: apiKey
+      name: x-pawa-token-admin
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

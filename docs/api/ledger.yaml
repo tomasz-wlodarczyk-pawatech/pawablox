@@ -1,0 +1,393 @@
+openapi: 3.1.0
+info:
+  title: Ledger
+  description: |
+    # Ledger System
+
+    ## Overview
+
+    The Ledger system is a financial transaction management service that handles account balances and transactions for users
+    across different brands and currencies. It provides APIs for creating transactions, retrieving balances, and generating
+    transaction statements.
+
+    ## Key Features
+
+    - Account management with support for multiple currencies
+    - Transaction creation and processing
+    - Balance retrieval with options for handling negative balances
+    - Transaction history and statement generation
+    - Administrative operations for managing user accounts and transactions
+    - Multi-tenant architecture with brand-specific configurations
+
+    ## User Functionality
+
+    - Check account balances in different currencies
+    - View transaction history and statements with running balances
+    - Receive real-time balance updates
+
+    ## Administrative Functionality
+
+    - Retrieve user balances across all or specific currencies
+    - Search and export user transactions
+    - Manage transactions and balances
+
+    ## Integration
+    ### Web Sockets
+    User balances are propagated via websockets (Live-Data service)
+    event-key: **user_balance**
+
+    ### Kafka Integration
+
+    The system publishes events to Kafka topics for:
+
+    - Negative balance notifications (`ledger-negative-balance` topic)
+    - Transaction events (`ledger-transaction-events` topic)
+    - Funds transfer reports (`ledger.funds.transfer.0` topic)
+    - Live data events including balance updates (`live-events` topic)
+
+    The system only sends data to these Kafka topics and does not consume data from any Kafka topics.
+
+    ## Important Notes
+
+    - The system is not idempotent - pushing a transaction with the same related data will raise an exception
+    - Negative balances are allowed but can be configured per transaction
+    - The system supports multi-tenancy with brand-specific configurations
+  version: 1.123.0
+servers:
+  - url: https://pawa-proxy.replit.app
+    description: Generated server url
+security:
+  - Token: []
+    Brand: []
+tags:
+  - name: User Transactions
+    description: Access to actual user transactions
+  - name: User Balance
+    description: Access to actual user balance
+paths:
+  /api/ledger/v1/funds/transfer:
+    post:
+      tags:
+        - User Transactions
+      summary: Transfer funds between accounts that belong to the same user
+      operationId: transfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FundsTransferRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/ledger/v1/funds/transactions/statement:
+    post:
+      tags:
+        - User Transactions
+      summary: Get transactions of logged in user with running balance
+      description: "Retrieves a paginated list of transactions for the authenticated\
+        \ user, including a running balance."
+      operationId: getTransactionStatement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserStatementRequest"
+      responses:
+        "200":
+          description: Successful retrieval of user transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTransactionsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/ledger/v1/funds/balance:
+    get:
+      tags:
+        - User Balance
+      summary: Get balance for default currency
+      description: Retrieves the user's balance in the default brand currency; returns
+        zero if the balance is negative.
+      operationId: getBalance
+      responses:
+        "200":
+          description: Successful retrieval of user balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+    post:
+      tags:
+        - User Balance
+      summary: Get balance for requested currency
+      description: Retrieves the user's balance for the specified currency; may be
+        negative.
+      operationId: getBalance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BalanceRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful retrieval of user balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    FundsTransferRequest:
+      type: object
+      properties:
+        creditor:
+          type: string
+          format: uuid
+          description: UUID of a user who gives funds.
+        debtor:
+          type: string
+          format: uuid
+          description: UUID of a user who receives funds.
+        amount:
+          type: number
+          description: The amount of funds being transferred.
+        currency:
+          type: string
+          description: The currency in which the transfer amount is denominated. Must
+            follow ISO 4217 (3 characters) standard
+      required:
+        - amount
+        - creditor
+        - currency
+        - debtor
+    UserStatementRequest:
+      type: object
+      description: Request model for fetching a page of user transactions
+      properties:
+        nextPageId:
+          type: string
+          description: Id for next page that is taken from previous search response.
+            Should be null on first request
+          example: abc123
+        pageSize:
+          type: integer
+          format: int32
+          default: "50"
+          description: "How many transactions to load. Default value is 50, max is\
+            \ 1000"
+          example: 50
+          maximum: 1000
+          minimum: 1
+        currency:
+          type: string
+          description: "If not provided default currency will be used. Format: ISO\
+            \ 4217 (3 characters) and upper case"
+          example: USD
+    TransactionResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        userUuid:
+          type: string
+          format: uuid
+        balance:
+          type: number
+          description: Used to show running balance when possible
+        currency:
+          type: string
+        change:
+          type: number
+        created:
+          type: string
+          format: date-time
+        relatedId:
+          type: string
+        relatedType:
+          type: string
+        metadata:
+          type: string
+    UserTransactionsResponse:
+      type: object
+      properties:
+        nextPageId:
+          type: string
+          description: Id for next page if there are more transactions to load.
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionResponse"
+    BalanceRequest:
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Currency should be in ISO 4217 (3 characters) and upper case
+      required:
+        - currency
+    BalanceResponse:
+      type: object
+      description: Response model containing user balance and currency
+      properties:
+        balance:
+          type: number
+          description: "User's balance amount. NB: balance has precision of 3 decimals"
+          example: 100.001
+        currency:
+          type: string
+          description: Currency code in ISO 4217 format
+          example: USD
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

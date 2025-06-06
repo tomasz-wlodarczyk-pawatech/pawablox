@@ -1,0 +1,613 @@
+openapi: 3.1.0
+info:
+  title: Fixed Odds Bets Service Public API
+  description: "# Fixed Odds Bets Service\n\nThis service is responsible for sports\
+    \ betting operations, including bet placement, settlement, and management. It\
+    \ provides a comprehensive API for both users and administrators to interact with\
+    \ the betting system.\n\n## Overview\n\nThe Fixed Odds Bets service handles the\
+    \ following core functionalities:\n- Bet placement and management\n- Betslip settlement\
+    \ and resulting\n- Cancellation requests and approvals\n- User statistics and\
+    \ reporting\n- Administrative operations for event management\n\nAll requests\
+    \ to the Fixed Odds Bets service require authentication, either as a user (for\
+    \ public endpoints) or as an administrator (for admin endpoints).\n\n## API Structure\n\
+    \nThe API is divided into two main groups:\n- **Public API**: Endpoints accessible\
+    \ to authenticated users for placing bets, viewing betslips, and managing their\
+    \ betting activities\n- **Admin API**: Endpoints accessible only to administrators\
+    \ for managing betslips, handling cancellation requests, and performing administrative\
+    \ operations\n\n## Authentication\n\nAuthentication is required for all API endpoints:\n\
+    - **Public API**: Requires user authentication via the `x-pawa-token` cookie\n\
+    - **Admin API**: Requires admin authentication via the `x-pawa-token-admin` cookie\n\
+    \nAdditionally, all requests require a brand identifier specified in the `x-pawa-brand`\
+    \ header.\n\n## Detailed API Functionality\n\n### Public API Endpoints\n\n####\
+    \ Betslip Management\n\nThe Betslip API provides endpoints for users to manage\
+    \ their betslips:\n\n1. **View Settled Betslips** (`GET /bet/api/v1/settled`)\n\
+    \   - Returns a paginated list of settled betslips for the authenticated user\n\
+    \   - Supports pagination parameters: `skip` and `take`\n\n2. **View Virtual Betslips**\
+    \ (`GET /bet/api/v1/virtual`)\n   - Returns a paginated list of virtual betslips\
+    \ for the authenticated user\n   - Supports pagination parameters: `skip` and\
+    \ `take`\n\n3. **View Pending Betslips** (`GET /bet/api/v1/pending`)\n   - Returns\
+    \ a paginated list of pending betslips for the authenticated user\n   - Supports\
+    \ pagination parameters: `skip` and `take`\n\n4. **Get Pending Betslips Count**\
+    \ (`GET /bet/api/v1/pending/count`)\n   - Returns the count of pending real betslips\
+    \ for the authenticated user\n\n5. **Get Betslip Details** (`GET /bet/api/v1/{id}`)\n\
+    \   - Returns detailed information about a specific betslip\n   - The ID can be\
+    \ either a numeric ID or a UUID\n   - Supports optional language parameter for\
+    \ localized content\n\n## Common Workflows\n\n### Betslip Lifecycle\n\n1. **Betslip\
+    \ Creation** (handled by external service)\n   - User selects events and places\
+    \ a bet\n   - Betslip is created with status \"PENDING\"\n\n2. **Betslip Settlement**\n\
+    \   - After events conclude, betslips are automatically settled\n   - Admins can\
+    \ manually resettle betslips if needed\n   - Settlement changes betslip status\
+    \ to \"WON\", \"LOST\", or other terminal states\n\n3. **Betslip Cancellation**\n\
+    \   - Users or admins can request cancellation of a betslip\n   - Admin approval\
+    \ is required for cancellation requests\n   - Approved cancellations change betslip\
+    \ status to \"CANCELLED\"\n\n## Error Handling\n\nAll **unsuccessful** API calls\
+    \ to the service will be wrapped into an **ErrorResponse** object.  \n\nExample\
+    \ response:\n```json\n{\n  \"error\": \"UNKNOWN\",\n  \"uuid\": \"9ce5a78a-b864-4502-bfe8-56a12d0ea056\"\
+    ,\n  \"params\": null,\n  \"payload\": null\n}\n```\n\n### Error Codes\n\nThe\
+    \ following tables provide detailed information about error codes that may be\
+    \ encountered when using the API, including their descriptions and the conditions\
+    \ that might trigger them.\n\n#### Public API Error Codes\n\n| Error Code | Description\
+    \ | Trigger Conditions |\n|------------|-------------|-------------------|\n|\
+    \ `FOB_INVALID_BETSLIP` | Betslip does not exist | This error occurs when attempting\
+    \ to access or modify a betslip that doesn't exist in the system. This can happen\
+    \ if the betslip ID is incorrect or if the betslip has been deleted. |\n| `FOB_PRICE_NOT_FOUND`\
+    \ | Selection ID does not exist | This error occurs when attempting to place a\
+    \ bet with a selection ID that doesn't exist in the system. This can happen if\
+    \ the selection ID is incorrect or if the selection has been removed from the\
+    \ available options. |\n| `FOB_UNKNOWN_SERVER_ERROR` | Unexpected server error\
+    \ | This is a general error that occurs when the server encounters an unexpected\
+    \ issue that it cannot handle. This could be due to database connectivity issues,\
+    \ internal processing errors, or other system-level problems. |\n| `TRANSACTION_CLIENT_EMPTY_RESPONSE`\
+    \ | Bet stake transaction has not been created | This error occurs when the system\
+    \ fails to create a transaction for a bet stake. This can happen if there are\
+    \ issues with the payment processing system or if the user's account has insufficient\
+    \ funds. |\n| `GATEWAY_TIMEOUT` | Service is not available | This error occurs\
+    \ when the service is temporarily unavailable or when a request takes too long\
+    \ to process. This can happen during system maintenance, high traffic periods,\
+    \ or when there are network connectivity issues. |\n| `FOB_QUEUE_IS_FULL` | Servers\
+    \ too busy | This error occurs when the system is experiencing high load and cannot\
+    \ process additional requests. This can happen during peak betting periods or\
+    \ when there are resource constraints on the server. |\n\n"
+  version: develop
+servers:
+- url: https://pawa-proxy.replit.app
+security:
+- token: []
+  brand: []
+- admin-token: []
+  brand: []
+- Token: []
+  Brand: []
+tags:
+- name: Public Api - Betslip API
+  description: Endpoints for managing user betslips
+paths:
+  /api/fixed-odds-bets/v1/betslip/{id}:
+    get:
+      tags:
+      - Public Api - Betslip API
+      - Public API
+      summary: Get betslip details by ID
+      description: Returns detailed information about a specific betslip identified
+        by its ID. The ID can be either a numeric ID or a UUID. Requires user authentication
+        via x-pawa-token cookie.
+      operationId: getBetslip
+      parameters:
+      - name: id
+        in: path
+        description: Betslip ID (can be numeric or UUID)
+        required: true
+        schema:
+          type: string
+      - name: language
+        in: query
+        description: Language for localized content
+        required: true
+        schema:
+          $ref: "#/components/schemas/Language"
+      responses:
+        "200":
+          description: Successfully retrieved betslip details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBetslipDetailsResponse"
+        "400":
+          description: Incorrect arguments or betslip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - token: []
+      - brand: []
+  /api/fixed-odds-bets/v1/betslip/virtual:
+    get:
+      tags:
+      - Public Api - Betslip API
+      - Public API
+      summary: List of virtual betslips (paged) for the authenticated user
+      description: Returns a paginated list of virtual betslips for the currently
+        authenticated user. Requires user authentication via x-pawa-token cookie.
+      operationId: getVirtualBetslips
+      parameters:
+      - name: skip
+        in: query
+        description: Number of items to skip
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: take
+        in: query
+        description: Number of items to take (max 25)
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Successfully retrieved list of virtual betslips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBetslipsResponsePaged"
+        "400":
+          description: Incorrect arguments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - token: []
+      - brand: []
+  /api/fixed-odds-bets/v1/betslip/settled:
+    get:
+      tags:
+      - Public Api - Betslip API
+      - Public API
+      summary: List of settled betslips (paged) for the authenticated user
+      description: Returns a paginated list of settled betslips for the currently
+        authenticated user. Requires user authentication via x-pawa-token cookie.
+      operationId: getSettledBetslips
+      parameters:
+      - name: skip
+        in: query
+        description: Number of items to skip
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: take
+        in: query
+        description: Number of items to take (max 25)
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Successfully retrieved list of settled betslips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBetslipsResponsePaged"
+        "400":
+          description: Incorrect arguments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - token: []
+      - brand: []
+  /api/fixed-odds-bets/v1/betslip/pending:
+    get:
+      tags:
+      - Public Api - Betslip API
+      - Public API
+      summary: List of pending betslips (paged) for the authenticated user
+      description: Returns a paginated list of pending betslips for the currently
+        authenticated user. Requires user authentication via x-pawa-token cookie.
+      operationId: getPendingBetslips
+      parameters:
+      - name: skip
+        in: query
+        description: "Number of items to skip (default: 0)"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: take
+        in: query
+        description: "Number of items to take (default: 50, max 50)"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        "200":
+          description: Successfully retrieved list of pending betslips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBetslipsResponsePaged"
+        "400":
+          description: Incorrect arguments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - token: []
+      - brand: []
+  /api/fixed-odds-bets/v1/betslip/pending/count:
+    get:
+      tags:
+      - Public Api - Betslip API
+      - Public API
+      summary: Count of pending REAL betslips
+      description: Returns the count of pending real betslips for the currently authenticated
+        user. Requires user authentication via x-pawa-token cookie.
+      operationId: getPendingBetslipCount
+      responses:
+        "200":
+          description: Successfully retrieved count of pending betslips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBetslipCountResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - token: []
+      - brand: []
+components:
+  schemas:
+    Language:
+      type: object
+      properties:
+        languageCode:
+          type: string
+        country:
+          type: string
+        variant:
+          type: string
+    BetItemDetailOddsResponse:
+      type: object
+      properties:
+        itemId:
+          type: integer
+          format: int64
+        status:
+          type: string
+        price:
+          type: number
+        wasInPlay:
+          type: boolean
+        resultText:
+          type: string
+        selection:
+          $ref: "#/components/schemas/Selection"
+        cashoutable:
+          type: boolean
+        cancellationReason:
+          type: string
+        twoUp:
+          type: boolean
+    BetslipCashoutInfo:
+      type: object
+      properties:
+        cashoutable:
+          type: boolean
+        result:
+          $ref: "#/components/schemas/CashoutPayoutResponse"
+    BetslipCutPlusInfo:
+      type: object
+      properties:
+        templateId:
+          type: string
+        activeCutCount:
+          type: integer
+          format: int32
+        generatedCuts:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeneratedCut"
+    BetslipTaxInfo:
+      type: object
+      properties:
+        amount:
+          type: number
+        stakeTax:
+          type: number
+        enabled:
+          type: boolean
+        stakeTaxEnabled:
+          type: boolean
+        percentage:
+          type: number
+        type:
+          type: string
+          enum:
+          - NET
+          - GROSS
+          - WHT_NET
+          - STAKE
+          - WHT_GROSS
+          - WHT_NET_TIERED
+        whtOffset:
+          type: boolean
+        compensationType:
+          type: string
+        compensationAmount:
+          type: number
+        compensationAmountTax:
+          type: number
+    CashoutPayoutResponse:
+      type: object
+      properties:
+        gross:
+          type: number
+        net:
+          type: number
+        tax:
+          type: number
+        whtCompensation:
+          type: number
+        whtCompensationTax:
+          type: number
+        cashoutType:
+          type: string
+    GeneratedCut:
+      type: object
+      properties:
+        miss:
+          type: integer
+          format: int32
+        gross:
+          type: number
+        net:
+          type: number
+        tax:
+          type: number
+        grossCompensation:
+          type: number
+        netCompensation:
+          type: number
+        taxCompensation:
+          type: number
+        available:
+          type: boolean
+    Handicap:
+      type: object
+      properties:
+        value:
+          type: string
+        type:
+          type: string
+          enum:
+          - NORMAL
+          - ASIAN
+          - EUROPEAN
+        text:
+          type: string
+    IdName:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    Market:
+      type: object
+      properties:
+        typeId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        groupName:
+          type: string
+        groupedName:
+          type: string
+        handicap:
+          $ref: "#/components/schemas/Handicap"
+        displayName:
+          type: string
+    PayoutDetails:
+      type: object
+      properties:
+        payout:
+          type: number
+        grossPossibleWin:
+          type: number
+        netPossibleWin:
+          type: number
+        bonus:
+          type: number
+        bonusType:
+          type: string
+        oddsMultiplier:
+          type: number
+        multipliedOdds:
+          type: number
+        totalOdds:
+          type: number
+        netCompensation:
+          type: number
+    Selection:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        category:
+          $ref: "#/components/schemas/IdName"
+        region:
+          $ref: "#/components/schemas/IdName"
+        competition:
+          $ref: "#/components/schemas/IdName"
+        event:
+          $ref: "#/components/schemas/IdName"
+        market:
+          $ref: "#/components/schemas/Market"
+        inPlay:
+          type: boolean
+        starts:
+          type: string
+          format: date-time
+    SettlementState:
+      type: object
+      properties:
+        settled:
+          type: integer
+          format: int32
+        total:
+          type: integer
+          format: int32
+        live:
+          type: integer
+          format: int32
+    UserBetslipDetailsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+        placed:
+          type: string
+          format: date-time
+        settled:
+          type: string
+          format: date-time
+        amount:
+          type: number
+        stake:
+          type: number
+        status:
+          type: string
+          enum:
+          - PENDING
+          - CANCELLED
+          - CASHOUT
+          - LOST
+          - WON
+          - PENDING_CUT_PLUS
+          - WIN_CUT_PLUS
+        payout:
+          $ref: "#/components/schemas/PayoutDetails"
+        settlementState:
+          $ref: "#/components/schemas/SettlementState"
+        currencyCode:
+          type: string
+        deviceType:
+          type: string
+        selections:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetItemDetailOddsResponse"
+        betslipType:
+          type: string
+          enum:
+          - REAL
+          - VIRTUAL
+        virtualInfo:
+          $ref: "#/components/schemas/VirtualInfo"
+        cashoutInfo:
+          $ref: "#/components/schemas/BetslipCashoutInfo"
+        taxInfo:
+          $ref: "#/components/schemas/BetslipTaxInfo"
+        cutPlusInfo:
+          $ref: "#/components/schemas/BetslipCutPlusInfo"
+    VirtualInfo:
+      type: object
+      properties:
+        seasonId:
+          type: integer
+          format: int64
+        seasonName:
+          type: string
+        roundName:
+          type: string
+        roundId:
+          type: integer
+          format: int64
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    UserBetslipsResponsePaged:
+      type: object
+      properties:
+        betslips:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserBetslipDetailsResponse"
+        hasMore:
+          type: boolean
+    UserBetslipCountResponse:
+      type: object
+      properties:
+        userBetslipCount:
+          type: integer
+          format: int64
+  securitySchemes:
+    token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    admin-token:
+      type: apiKey
+      name: x-pawa-token-admin
+      in: cookie
+    brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

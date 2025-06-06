@@ -1,0 +1,143 @@
+openapi: 3.1.0
+info:
+  title: Api-Gateway
+  description: "Api-gateway is responsible for validating all incoming requests. \
+    \ \nTo use our api each request should have a header named \"**x-pawa-brand**\"\
+    \ henceforth referred as **Brand**.  \nBrand is a unique identifier for BetPawa\
+    \ clients, that will be provided by us.  \n\nFor user authentication refer to\
+    \ **user service** documentation.  \nAfter user has been logged in, he is provided\
+    \ with a header \"**x-pawa-token**\" henceforth referred as **Token**.  \nToken\
+    \ is bind to user session, therefore all following user request must have it.\n\
+    \n\n### Error Handling\nAll **unsuccessful** API calls to any service will be\
+    \ wrapped into **ErrorResponse**.  \nExample response:  \n{ \"error\": 11102,\
+    \ \"uuid\": \"12bd2a1c-c359-4192-8755-a1504bcf02bf\", \"params\": null, \"payload\"\
+    : null }\n\n**Missing or invalid token will result in following error codes in\
+    \ ErrorResponse:**\n* TOKEN_NOT_PROVIDED = 11100;\n* TOKEN_IS_INVALID = 11102;\n\
+    * TOKEN_IS_REVOKED = 11103;\n* ACCESS_DENIED = 11104;  \n* BRAND_HEADER_IS_MISSING\
+    \ = 11105;\n\nEach service has its own error code mapping\n\n#### RequestRateLimiter\n\
+    Some endpoint may have [RequestRateLimiter](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway/gatewayfilter-factories/requestratelimiter-factory.html).\n\
+    This filer limits load to the endpoint. After increasing the limit the **HTTP\
+    \ 429 - Too Many Requests** response will be returned\n\nConfiguration \n\n* Limits\
+    \ configuration are configured on api routes `helm/api-gateway/gateway-paths/services`.\n\
+    RequestRateLimiter filter can be removed completely to deactivate limiter for\
+    \ some route. \n\n* The limited endpoint load is distributed according the `routeAndBrandKeyResolver.`\n\
+    It allows to set limit for route ID and provided brand identifier (x-pawa-brand\
+    \ header) pair \n\n* Also, extended http cals metric is provided. The metric **http_server_requests_branded**\
+    \ will have status code, route ID and brand identifier in tags"
+  version: 0.914.0
+servers:
+  - url: https://pawa-proxy.replit.app
+    description: Generated server url
+security:
+  - Token: []
+    Brand: []
+tags:
+  - name: Logout
+    description: Handles user logout
+  - name: Token Management
+    description: Managing user tokens
+paths:
+  /api/auth/v1/logout:
+    post:
+      tags:
+        - Logout
+      summary: User logout
+      description: Invalidates user token which is taken from the cookie and logs
+        the user out of the system
+      operationId: logout
+      responses:
+        "200":
+          description: User successfully logged out
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/auth/v1/token/validate:
+    get:
+      tags:
+        - Token Management
+      summary: Validate user token
+      description: "Validates token from the cookie, valid token means that user is\
+        \ logged in to the system."
+      operationId: validate
+      responses:
+        "200":
+          description: Token is valid
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

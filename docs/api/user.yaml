@@ -1,0 +1,1115 @@
+openapi: 3.1.0
+info:
+  title: User Service API
+  description: "# User Service API Documentation\n\n## Overview\nUser entities represent\
+    \ accounts in the system. Having a user is mandatory to access most of the existing\
+    \ endpoints. Such endpoints are marked as required `x-pawa-token` that is provided\
+    \ on authentication in the system.\n\nPhone number is used as user identifier.\n\
+    \nGeneral portal customers users are created via `api/user/v3/signup-and-authenticate`\
+    \ endpoint.\n\nIt is not possible to remove User from the system, but user account\
+    \ can be closed or banned to revoke their access to the system. Also user can\
+    \ be archived.\n\nBusiness processes are described in the [business-process-relations.md](business-process-relations.md)\
+    \ file.\n\n## Authentication\nThe API uses token-based authentication. After successful\
+    \ authentication, a token is provided in the `x-pawa-token` cookie. This token\
+    \ must be included in subsequent requests as a cookie.\n\n## Common Response Codes\n\
+    - **200 OK**: The request was successful\n- **201 Created**: The resource was\
+    \ successfully created\n- **400 Bad Request**: The request was invalid or cannot\
+    \ be served\n- **401 Unauthorized**: Authentication is required or has failed\n\
+    - **500 Internal Server Error**: An error occurred on the server\n\n## Rate Limiting\n\
+    Many endpoints implement rate limiting to prevent abuse. When rate limits are\
+    \ exceeded, the API will return appropriate error responses with information about\
+    \ when the limit will be reset.\n  \n**Error codes:**  \nACCOUNT_NOT_FOUND (\"\
+    User %s not found\")  \nINVALID_PHONE_NUMBER (\"%s is not a valid phone number\"\
+    )  \nPASSWORD_REQUIREMENTS_MISMATCH (\"Your password must be at least 4 characters\
+    \ long\")  \nACCOUNT_EXISTS (\"Your account already exists\")  \nACCOUNT_CLOSED\
+    \ (\"Account is closed.\")  \nACCOUNT_SELF_EXCLUDED (\"User is self-excluded until:\
+    \ %s\")  \nACCOUNT_TEMPORARILY_SUSPENDED (\"Your account has been suspended. Please\
+    \ contact us for any inquiry.\")  \nACCOUNT_NOT_VERIFIED (\"Your account %s is\
+    \ not verified\")  \nWRONG_USERNAME_OR_PASSWORD (\"Wrong username or password\"\
+    )  \nACCOUNT_BANNED (\"You have been banned, please contact support for further\
+    \ information.\")  \nNEW_PASSWORD_MUST_BE_DIFFERENT (\"New password cannot be\
+    \ the same as old one\")  \nPASSWORD_INVALID (\"Current password is not correct\"\
+    )  \nVERIFICATION_CODE_MUST_BE_NUMBER (\"One-Time Password must be a number\"\
+    )  \nVERIFICATION_CODE_ALREADY_USED (\"One-Time Password has already been used\
+    \ once\")  \nVERIFICATION_CODE_EXPIRED (\"One-Time Password has expired\")  \n\
+    WRONG_NAME_INPUT (\"Empty names not allowed\")  \nNIN_NOT_VALID (\"Please check\
+    \ that you have entered your National Identification (NIN) number correctly. If\
+    \ you still encounter this error, please contact our Support\")  \nWRONG_UG_NAME_INPUT\
+    \ (\"Invalid name: only letters, spaces, hyphens, and apostrophes are allowed.\
+    \ 2-40 symbols allowed.\")  \nWRONG_DOCUMENT_NUMBER (\"Please check that you have\
+    \ entered your document number correctly. Only numbers, and letters are allowed.\
+    \ If you continue to encounter this error, please contact our Support.\")  \n\
+    USER_IDENTIFIER_IS_MISSING (\"Identifier is missing\")  \nUSER_NOTE_NOT_FOUND\
+    \ (\"User note %s is not found\")  \nGENERIC_ATTEMPTS_EXCEEDED (\"Attempts exceeded\"\
+    )  \nLOGINS_ATTEMPTS_EXCEEDED (\"Login attempts exceeded\")  \nPASSWORD_RESET_ATTEMPTS_EXCEEDED\
+    \ (\"Password reset attempts exceeded\")  \nREQUEST_OTP_ATTEMPTS_EXCEEDED (\"\
+    OTP request attempts exceeded\")  \nOTP_TEST_ATTEMPTS_EXCEEDED (\"OTP test attempts\
+    \ exceeded\")  \nINVALID_USER_BRAND_IDENTIFIER (\"Phone number should match user's\
+    \ country and brand\")  \nPERSONAL_DATA_ATTEMPTS_EXCEEDED (\"KYC verification\
+    \ attempts exceeded\")  \nMULTIPLE_EXCEPTION_WRAPPER (\"More than one exception\
+    \ occurred\")  \nBANK_DETAILS_ARE_MISSING (\"Bank name and account number must\
+    \ be provided\")  \nDATE_SHOULD_BE_IN_FUTURE (\"Date should be in the future\"\
+    )  \nOTHER_USER_ALREADY_CONNECTED (\"Other user already connected\")  \nUSER_ALREADY_VERIFIED\
+    \ (\"User already verified\")  \nUSERS_MAX_CONNECTIONS_REACHED (\"User reached\
+    \ max number of connections\")  \nUSERS_NON_UNIQUE (\"Users should be unique\"\
+    )  \nUSERS_NOT_CONNECTED (\"Users are not connected\")  \nUSER_CONNECTION_CREATION_ATTEMPTS_EXCEEDED\
+    \ (\"User connection creation attempts exceeded\")  \nUSER_CONNECTION_VERIFICATION_ATTEMPTS_EXCEEDED\
+    \ (\"User connection verification attempts exceeded\")  \nVERIFY_ACCOUNT_ATTEMPTS_EXCEEDED\
+    \ (\"Verify account attempts exceeded\")  \nPASSWORD_CANNOT_MATCH_OTP_CODE (\"\
+    The password cannot match the OTP code\")  \nUSER_ALREADY_ARCHIVED (\"User %s\
+    \ is already archived\")  \nUSER_ALREADY_ACTIVE (\"User %s is already active\"\
+    )"
+  version: 2.201.0
+servers:
+  - url: https://pawa-proxy.replit.app
+    description: Generated server url
+security:
+  - Token: []
+    Brand: []
+tags:
+  - name: Authentication
+    description: Managing user sessions
+  - name: Connected Accounts Management
+    description: API endpoints for connecting different user accounts
+  - name: User Account Management
+    description: "API endpoints for password change, restore and verification management"
+paths:
+  /api/user/v1/self-exclude:
+    put:
+      tags:
+        - User Account Management
+      summary: Self excludes user. User will be logged out and wont be able to log
+        in.
+      operationId: selfExclude
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelfExcludeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/verify-and-authenticate:
+    post:
+      tags:
+        - User Account Management
+      summary: Completes user's phone number verification by code sent in message
+      description: This endpoint verifies the user's phone number using the verification
+        code they received and authenticates the user in a single step. It's the final
+        step in the account verification flow.
+      operationId: verifyAndAuthenticate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyAndAuthenticateRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful Operation. User is authenticated and x-pawa-token
+            will be set to cookie.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationResponseV3"
+        "400":
+          description: Endpoint will limit requests for user for some time in case
+            of too many attempts.
+          content:
+            application/json:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/signup-and-authenticate:
+    post:
+      tags:
+        - Authentication
+      summary: Creates and automatically logs in user in the system.
+      description: |
+        Create user with specified phone number and password.
+        If sign up is successful and verification isn't required - response will return status code 201 with header `x-pawa-token` and `userUuid` in response body.
+        If user already exists in system and entered valid password - system will automatically login user and return the same response as successful sign up.
+
+        If account verification is required - response will return status code 400 and error ACCOUNT_NOT_VERIFIED.
+        To verify user account `/api/user/v3/request-verification-code` endpoint must be used with user phone nuber and desired OTP delivery method.
+        Then complete verification here `/api/user/v3/verify-and-authenticate` by entering OTP code. If new code is accepted then endpoint return the same response as successful sign up.
+
+        To retrieve OTP - user's last sms could be retrieved on develop `https://pawa-proxy.replit.app/sms-for-user/{phoneNumber}` and on test `https://api.test.qa.verekuu.com/sms-for-user/{phoneNumber}`. E.g. - `curl https://api.test.qa.verekuu.com/sms-for-user/+2348167467552`
+      operationId: signUpAndAuthenticate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpRequest"
+        required: true
+      responses:
+        "201":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationResponseV3"
+        "400":
+          description: "Mandatory fields are missing, validation failure or phone\
+            \ number verification is required."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/request-verification-code:
+    post:
+      tags:
+        - User Account Management
+      summary: User requests his verification code from list of available methods
+      description: "This endpoint allows a user to request a verification code. The\
+        \ message with the code will be sent by the selected method (SMS, email, etc.).\
+        \ This is used for account verification purposes."
+      operationId: requestVerificationCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordRequestV3"
+        required: true
+      responses:
+        "200":
+          description: "Successful Operation. Returns information about call limits.\
+            \ If the limit is exceeded, the endpoint still returns HTTP code 200,\
+            \ but the backend logic will not be executed, and this will be indicated\
+            \ by the flag com.betpawa.user.rest.dto.LimitsCollectionResponse#isAllowed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LimitsCollectionResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/password/verify-otp:
+    post:
+      tags:
+        - User Account Management
+      summary: Checks received OTP code for validity
+      description: This endpoint verifies if the OTP code provided by the user is
+        valid. It's used as part of the password reset flow.
+      operationId: verifyOtpCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyOtpRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful Operation. Returns whether the OTP is valid and
+            information about call limits.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyOtpResponse"
+        "400":
+          description: Endpoint will limit requests for user for some time in case
+            of too many attempts.
+          content:
+            application/json:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/password/update-and-authenticate:
+    post:
+      tags:
+        - User Account Management
+      summary: Authenticates user based on provided OTP code and updates password
+      description: "This endpoint allows a user to set a new password and authenticate\
+        \ in a single step, using the OTP code they received. It's the final step\
+        \ in the password reset flow."
+      operationId: updatePasswordAndAuthenticate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPasswordRequestV3"
+        required: true
+      responses:
+        "200":
+          description: Successful Operation. x-pawa-token will be set to cookie. This
+            token should be provided for all further requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationResponseV3"
+        "400":
+          description: Endpoint will limit requests for user for some time in case
+            of too many attempts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/password/request-otp:
+    post:
+      tags:
+        - User Account Management
+      summary: User requests it's password to be reset. One-time password will be
+        send according to selected method
+      description: "This endpoint allows a user to request a password reset. An OTP\
+        \ (One-Time Password) will be sent to the user via the selected method (SMS,\
+        \ email, etc.)."
+      operationId: requestOtpCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordRequestV3"
+        required: true
+      responses:
+        "200":
+          description: "Successful Operation. Returns information about call limits.\
+            \ If the limit is exceeded, the endpoint still returns HTTP code 200,\
+            \ but the backend logic will not be executed, and this will be indicated\
+            \ by the flag com.betpawa.user.rest.dto.LimitsCollectionResponse#isAllowed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LimitsCollectionResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v3/authenticate:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticates user based on provided credentials. Endpoint will limit
+        requests for user for some tine in case of many unsuccessful attempts.
+      operationId: authenticate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthenticationRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful Operation. x-pawa-token will be set to cookie. This
+            token should be provided for all further requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationResponseV3"
+        "400":
+          description: Requests suspended for some time for the user because of many
+            unsuccessful attempts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v1/switch:
+    post:
+      tags:
+        - Connected Accounts Management
+      summary: Switch to a connected user account
+      description: |
+        Authenticates as a connected user based on the token of the currently logged-in user.
+        This allows users to switch between their connected accounts without re-entering credentials.
+        The current session will be terminated and a new session for the connected user will be created.
+
+        Endpoint will limit requests for user for some time in case of many unsuccessful attempts.
+      operationId: authenticate_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectedUserAuthenticationRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful Operation. x-pawa-token will be set to cookie for
+            the connected user. This token should be provided for all further requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LimitsCollectionResponse"
+        "400":
+          description: "Invalid request, connection not found, or requests suspended\
+            \ for 60 minutes due to too many unsuccessful attempts."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v1/password:
+    post:
+      tags:
+        - User Account Management
+      summary: User change password. In password update form
+      operationId: changePassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserChangePasswordRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v1/connection:
+    post:
+      tags:
+        - Connected Accounts Management
+      summary: Create connection to other user
+      description: Initiates a connection between the current user and another user
+        identified by phone number. The connection starts in an unverified state and
+        requires verification to be fully established.
+      operationId: createUnverifiedConnections
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserConnectionRequest"
+        required: true
+      responses:
+        "200":
+          description: Connection successfully initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectedUsersResponse"
+        "400":
+          description: Invalid request or connection cannot be established
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/user/v1/connection/verify:
+    post:
+      tags:
+        - Connected Accounts Management
+      summary: Verify connection to other user
+      description: "Completes the connection verification process between users by\
+        \ validating the verification code. Once verified, users can switch between\
+        \ connected accounts."
+      operationId: createVerifiedConnection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserConnectionVerificationRequest"
+        required: true
+      responses:
+        "200":
+          description: Connection successfully verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectedUsersResponse"
+        "400":
+          description: Invalid verification code or connection cannot be verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    BankAccountDetails:
+      type: object
+      properties:
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+    SelfExcludeRequest:
+      type: object
+      properties:
+        password:
+          type: string
+        selfExcludedUntil:
+          type: string
+          format: date-time
+          description: Self excluded until in ISO-8601 format. Default value is set
+            to 99 years
+        bankAccountDetails:
+          $ref: "#/components/schemas/BankAccountDetails"
+      required:
+        - password
+    AuthenticationResponseV3:
+      type: object
+      description: Response returned after successful authentication
+      properties:
+        userUuid:
+          type: string
+          format: uuid
+          description: Unique identifier of the authenticated user
+          example: 123e4567-e89b-12d3-a456-426614174000
+    VerifyAndAuthenticateRequest:
+      type: object
+      description: Request containing phone number and verification code
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number
+        verificationCode:
+          type: string
+          description: Verification code from message
+      required:
+        - phoneNumber
+        - verificationCode
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    SignUpRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number in international format
+          example: "+1234567890"
+        password:
+          type: string
+          description: User's password
+          maxLength: 1000
+          minLength: 4
+        firstName:
+          type: string
+          maxLength: 40
+          minLength: 2
+        lastName:
+          type: string
+          maxLength: 40
+          minLength: 2
+        nationality:
+          type: string
+        regionId:
+          type: integer
+          format: int32
+          description: Location code
+        identificationNumber:
+          type: string
+          description: Non-resident document / refugee card number
+        identificationType:
+          type: string
+          description: Type of identification document
+        dateOfBirth:
+          type: string
+          format: date
+          description: "The user’s date of birth, in ISO 8601 format (YYYY-MM-DD)"
+          example: 2021-12-31
+      required:
+        - password
+        - phoneNumber
+    LimitsCollectionResponse:
+      type: object
+      description: Collection of rate limiting information for different operations
+      properties:
+        limit:
+          $ref: "#/components/schemas/LimitsResponse"
+          description: Primary rate limit information for the current operation
+        otherLimits:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/LimitsResponse"
+          description: "Additional rate limit information for related operations,\
+            \ keyed by operation name"
+    LimitsResponse:
+      type: object
+      description: Information about rate limiting for API operations
+      properties:
+        attemptsLimit:
+          type: integer
+          format: int32
+          description: Maximum number of attempts allowed within the period
+          example: 10
+        attemptsLeft:
+          type: integer
+          format: int32
+          description: Number of attempts remaining before being rate limited
+          example: 5
+        attemptsPeriodMin:
+          type: integer
+          format: int64
+          description: Period in minutes during which the attempts are counted
+          example: 60
+        allowed:
+          type: boolean
+          description: This flag indicates state of executed operation but not related
+            to next attempt.
+    PasswordRequestV3:
+      type: object
+      description: Password reset request containing phone number and reset method
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number to update password. Also it is key for call limiter
+        resetMethodName:
+          type: string
+          description: "One of possible methods to reset password. It could be: SMS,\
+            \ VOICE, WHATSAPP, ...."
+      required:
+        - phoneNumber
+        - resetMethodName
+    VerifyOtpResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        limits:
+          $ref: "#/components/schemas/LimitsResponse"
+    VerifyOtpRequest:
+      type: object
+      description: Request containing the phone number and OTP code to verify
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number to update password. Also it is key for call limiter
+        otpCode:
+          type: string
+          description: Received OPT code
+      required:
+        - otpCode
+        - phoneNumber
+    SetPasswordRequestV3:
+      type: object
+      description: "Request containing phone number, OTP code, new password, and remember\
+        \ me flag"
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number to update password. Also it is key for call limiter
+        otpCode:
+          type: string
+          description: Received OPT code
+        newPassword:
+          type: string
+          description: Length at least 4 characters
+        rememberMe:
+          type: boolean
+          description: "When true token will be saved for extended time, e.g. 30 days"
+      required:
+        - newPassword
+        - otpCode
+        - phoneNumber
+    AuthenticationRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Usually its a phone number
+          example: "+1234567890"
+        password:
+          type: string
+          description: User's password
+        rememberMe:
+          type: boolean
+          description: "When true token will be saved for extended time, e.g. 30 days"
+          example: true
+      required:
+        - password
+        - username
+    ConnectedUserAuthenticationRequest:
+      type: object
+      description: Request to authenticate as a connected user
+      properties:
+        connectedUserUuid:
+          type: string
+          format: uuid
+          description: UUID of the connected user account to switch to
+          example: 123e4567-e89b-12d3-a456-426614174000
+    UserChangePasswordRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          description: Length at least 4 characters
+      required:
+        - currentPassword
+        - newPassword
+    UserConnectionRequest:
+      type: object
+      description: Request to initiate a connection with another user
+      properties:
+        otherPhoneNumber:
+          type: string
+          description: Phone number of the user to connect with
+          example: "+1234567890"
+    ConnectedUserResponse:
+      type: object
+      description: Information about a connected user
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: Unique identifier of the connected user
+          example: 123e4567-e89b-12d3-a456-426614174000
+        identifier:
+          type: string
+          description: Phone number or other identifier of the connected user
+          example: "+1234567890"
+        type:
+          type: string
+          description: Type of connection between users
+          enum:
+            - UNVERIFIED
+            - VERIFIED
+            - CONNECTED
+          example: CONNECTED
+    ConnectedUsersResponse:
+      type: object
+      description: Response containing a list of connected users
+      properties:
+        connectedUsers:
+          type: array
+          description: List of users connected to the current user
+          items:
+            $ref: "#/components/schemas/ConnectedUserResponse"
+    UserConnectionVerificationRequest:
+      type: object
+      description: Request to verify a connection with verification code
+      properties:
+        verificationCode:
+          type: string
+          description: Verification code received by the other user
+          example: "123456"
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

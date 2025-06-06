@@ -1,0 +1,142 @@
+openapi: 3.1.0
+info:
+  title: Classifier Brand
+  description: |
+    # Classifier Brand Service
+
+    ## Overview
+    The Classifier Brand Service manages brand information for the BetPawa platform. It provides data about brands, their associated jurisdictions, and their configuration details such as supported currencies, languages, and media links.
+
+    ## Key Features
+    - Retrieve brand details by identifier
+    - Get available currencies and languages across all active brands
+    - Create brand specific configuration using Brand preferences
+    - List all available brands and their preferences
+    - Support for brand-jurisdiction mapping
+
+    ## Data Model
+    A brand consists of:
+    - Identifier (format: `brandname-countryname`)
+    - Brand name
+    - Launch date
+    - Media links (social media, support contacts)
+    - Details (root domain, ISO country code, locale, currency)
+    - Active status
+
+    ## Security
+    API access requires:
+    - `x-pawa-token` cookie for authentication
+    - `x-pawa-brand` header for brand context
+  version: 1.50.0
+servers:
+- url: https://pawa-proxy.replit.app
+  description: Generated server url
+security:
+- Token: []
+  Brand: []
+tags:
+- name: Brands API
+  description: Public API of brands service.
+paths:
+  /api/brand/v1/countries/{brand-name}:
+    get:
+      tags:
+      - Brands API
+      summary: Returns countries where brand operates. Retrieves a list of countries
+        where the specified brand is operational.
+      operationId: getCountries
+      parameters:
+      - name: brand-name
+        in: path
+        description: Name of the brand to get countries for
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request processed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CountryResponse"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    CountryResponse:
+      type: object
+      properties:
+        brandIdentifier:
+          type: string
+        countryIso2Code:
+          type: string
+        rootDomain:
+          type: string
+        landingPageActive:
+          type: boolean
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

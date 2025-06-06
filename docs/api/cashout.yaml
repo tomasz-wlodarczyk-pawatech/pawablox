@@ -1,0 +1,378 @@
+openapi: 3.1.0
+info:
+  title: Cashout Service Public API
+  description: |+
+    # Cashout Service Documentation
+
+    ## Overview
+
+    The Cashout Service is a comprehensive system that enables users to cash out their bets before the sporting events they've wagered on have concluded. This feature allows users to secure a portion of their potential winnings or minimize losses based on the current state of their bet.
+
+
+    ## Key Concepts
+
+    - **Cashout**: The process of settling a bet before the sporting event concludes
+    - **Offer**: A proposed payout amount for a cashout request
+    - **Confirmation**: The acceptance of a cashout offer by the user
+    - **Configuration**: Settings that control cashout behavior, which can be customized per brand
+
+    ## Workflow
+
+    1. **Offer Request**: User requests a cashout offer for a specific betslip
+    2. **Offer Calculation**: System calculates an appropriate offer based on current probabilities and configurations
+    3. **Offer Presentation**: User is presented with the cashout offer
+    4. **Confirmation**: User confirms the cashout offer
+    5. **Settlement**: System processes the cashout, updates the betslip status, and transfers funds to the user's wallet
+
+
+    ## Security Considerations
+
+    The Cashout Service implements several security measures to ensure the integrity and safety of cashout operations:
+
+    - **Authentication**: All API requests require proper authentication using tokens
+    - **Authorization**: Access to admin endpoints is restricted to users with appropriate permissions
+    - **Data Validation**: All input data is validated to prevent injection attacks and ensure data integrity
+    - **Distributed Locking**: Prevents race conditions and ensures that only one operation can be performed on a betslip at a time
+    - **Idempotency**: Operations are designed to be idempotent to prevent duplicate processing
+    - **Audit Logging**: All configuration changes and cashout operations are logged for audit purposes
+    - **Error Handling**: Comprehensive error handling prevents information leakage and ensures system stability
+
+    ## API Documentation
+
+    The Cashout Service provides two main categories of APIs:
+
+    ### Public API
+
+    The Public API enables users to interact with the cashout system to manage their bets. These endpoints allow users to:
+
+    - **Request Cashout Offers**: Users can request a cashout offer for a specific betslip. The system calculates an appropriate offer based on current probabilities and configurations.
+    - **Confirm Cashout Offers**: Once a user receives a cashout offer, they can confirm it to settle the bet early.
+    - **Check Confirmation Status**: Users can check the status of their cashout confirmation to see if it has been processed.
+
+    The Public API supports different request patterns:
+    - **Standard Requests**: Simple request-response pattern for cashout operations
+    - **Long-Polling**: Allows clients to wait for a response until the offer is ready or a timeout occurs
+    - **Auto-Polling**: Enables automatic polling for cashout offers without client-side implementation
+
+
+    #### Public API Error Codes
+
+    | Error Code | Description | Possible Causes | Recommended Actions |
+    |------------|-------------|----------------|-------------------|
+    | `CASHOUT_INVALID_BETSLIP` | Could not find the specified betslip | The betslip ID provided doesn't exist, has been deleted, or belongs to a different user. It could also be a betslip placed on virtual sports which aren't supported for cashout. | Verify the betslip ID is correct. Check if the betslip exists in the user's active bets. If it's a virtual sports bet, inform the user that cashout is not available for virtual events. |
+    | `CASHOUT_ODDS_CHANGED` | The odds for one or more selections in the betslip have changed | Market conditions have changed since the bet was placed or since the last cashout offer was generated. This could be due to game events, new information, or market movements. | The user should request a new cashout offer which will reflect the current odds. The system automatically recalculates offers based on current probabilities. |
+    | `CASHOUT_UNKNOWN_SERVER_ERROR` | An unexpected error occurred during the cashout process | This is a general error that could be caused by various system issues, such as database connectivity problems, calculation errors, or integration failures with other services. | Retry the operation. If the error persists, contact customer support with the error UUID for further investigation. System administrators should check logs for the specific error details. |
+    | `CASHOUT_WRONG_STATUS_FOR_CASHOUT` | The betslip is in a status that doesn't allow cashout | The betslip might be in a pending, voided, or other status that is incompatible with the cashout operation. | Wait until the betslip status changes to an active state. If the bet should be active but shows an incorrect status, contact customer support. |
+    | `CASHOUT_BETSLIP_LOST_CANT_CASHOUT` | The betslip has already been marked as lost | One or more selections in the betslip have already lost, making the entire betslip ineligible for cashout. | No cashout is possible for lost bets. The user should place new bets if desired. |
+    | `CASHOUT_BETSLIP_WON_CANT_CASHOUT` | The betslip has already been marked as won | The betslip has been settled as a winner, making it ineligible for cashout. | No cashout is needed as the bet has already won. The winnings should be credited to the user's account. |
+    | `CASHOUT_BETSLIP_NOT_CASHOUTABLE` | The betslip is not eligible for cashout | The bet type or specific conditions of the betslip make it ineligible for cashout. This could be due to promotional bets, system bets, or other special bet types. | Inform the user that this type of bet doesn't support cashout. Future bets should be placed with cashout eligibility in mind if this feature is important to the user. |
+    | `CASHOUT_WRONG_CASHOUT_VALUE` | The proposed cashout value is invalid | The cashout amount requested is either too high, too low, or otherwise invalid according to the system's rules. | Request a new cashout offer with a valid amount within the system's acceptable range. |
+    | `CASHOUT_OFFLINE_PRICES` | Current probabilities for the events in the betslip are unavailable | The odds provider or probability calculation service is temporarily unavailable or cannot provide current odds for the events in the betslip. | Try again later when the probability service is back online. If the issue persists, it may indicate a more significant system problem that requires administrator attention. |
+    | `CASHOUT_IS_DISABLED` | The cashout feature is currently disabled | Cashout functionality may be temporarily disabled for system maintenance, during specific high-load periods, or for specific events or markets. | Wait until the cashout feature is re-enabled. Check for any system announcements regarding cashout availability. |
+    | `CASHOUT_OFFER_EXPIRED` | The previously generated cashout offer has expired | Cashout offers are valid for a limited time period. If not accepted within that window, they expire and become invalid. | Request a new cashout offer. Be prepared to accept it promptly before it expires again. |
+    | `CASHOUT_BETSLIP_SETTLED` | The betslip has already been settled | The betslip has been processed and settled (either as won, lost, or partially settled), making it ineligible for cashout. | No cashout is possible for settled bets. Check account balance for any winnings that may have been credited. |
+    | `CASHOUT_INVALID_ID` | The ID provided for the cashout entity is invalid | The offer ID or confirmation ID provided doesn't exist or is in an invalid format. | Verify the ID is correct. If using the API directly, ensure the correct format is being used. If using the UI, try refreshing or requesting a new offer. |
+    | `CASHOUT_ALL_ITEMS_SETTLED` | All selections in the betslip have already been settled | Each individual selection in the betslip has already been settled, making the betslip ineligible for cashout. | No cashout is possible when all items are settled. Check account balance for any winnings that may have been credited. |
+    | `CASHOUT_OFFER_EXCEEDED_ALLOWED_CHANGE` | The cashout offer value has changed beyond the allowed threshold | The difference between the previously calculated offer and the current offer exceeds the system's allowed change threshold. This is a protection mechanism to prevent unexpected large swings in cashout values. | Request a new cashout offer. Be aware that market conditions are volatile and the new offer may differ significantly from previous ones. |
+    | `CASHOUT_OFFER_LESS_THAN_MINIMUM_OFFER` | The calculated cashout offer is below the minimum allowed value | The system has calculated a cashout value that is below the minimum threshold set by the system. This could be due to very low probability of winning or other factors. | No cashout is possible at this time due to the low value. The user may wait for conditions to change or allow the bet to run its course. |
+    | `LOCK_FAILED_EXCEPTION` | Failed to acquire a distributed lock for the operation | Another process is currently performing an operation on the same resource, or the lock service is experiencing issues. | Retry the operation after a short delay. If the issue persists, check the status of the distributed lock service and ensure no deadlocks have occurred. |
+
+  version: "1.0"
+servers:
+- url: https://pawa-proxy.replit.app
+security:
+- Token: []
+  Brand: []
+- Token: []
+  Brand: []
+tags:
+- name: Public API
+  description: Public endpoints for cashout operations
+- name: Admin API
+  description: Admin endpoints for cashout management
+paths:
+  /api/cashout/v2/request-offer:
+    post:
+      tags:
+      - Cashout Controller
+      - Public API
+      summary: Cashout Offer Request
+      operationId: requestCashout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutRequest"
+        required: true
+      responses:
+        "200":
+          description: Cashout offer requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/cashout/v2/request-offer-polling:
+    post:
+      tags:
+      - Cashout Controller
+      - Public API
+      summary: Cashout Request Long-polling
+      operationId: longPollingRequestCashout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutRequest"
+        required: true
+      responses:
+        "200":
+          description: Cashout offer requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/cashout/v2/request-offer-auto:
+    post:
+      tags:
+      - Cashout Controller
+      - Public API
+      summary: Cashout Request Auto-polling
+      operationId: autoPollingRequestCashout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutRequest"
+        required: true
+      responses:
+        "200":
+          description: Cashout offer requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/cashout/v2/confirm:
+    post:
+      tags:
+      - Cashout Controller
+      - Public API
+      summary: Cashout Confirm
+      operationId: confirmCashoutOffer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmRequest"
+        required: true
+      responses:
+        "200":
+          description: Cashout offer confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferStatusResponse"
+        "400":
+          description: Cashout offer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/cashout/v2/status/{status-id}:
+    get:
+      tags:
+      - Cashout Controller
+      - Public API
+      summary: Get confirmation status
+      operationId: getConfirmationStatus
+      parameters:
+      - name: status-id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Offer status found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferStatusResponse"
+        "404":
+          description: Offer status not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/cashout/v2/current-offer/{betslip-id}:
+    get:
+      tags:
+      - Cashout Controller
+      - Public API
+      summary: Get Current Cashout Offer
+      operationId: getCurrentCashoutOffer
+      parameters:
+      - name: betslip-id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Current cashout offer fetched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentOfferDto"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    PayoutRequest:
+      type: object
+      properties:
+        betslipId:
+          type: integer
+          format: int64
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        uuid:
+          type: string
+        params:
+          type: array
+          items:
+            type: string
+        payload:
+          type: object
+          additionalProperties:
+            type: object
+    OfferResponse:
+      type: object
+      properties:
+        expire:
+          type: string
+          format: date-time
+        offerId:
+          type: string
+        payout:
+          $ref: "#/components/schemas/PayoutResponse"
+    PayoutResponse:
+      type: object
+      properties:
+        gross:
+          type: number
+        net:
+          type: number
+        tax:
+          type: number
+        whtCompensation:
+          $ref: "#/components/schemas/TaxCompensation"
+    TaxCompensation:
+      type: object
+      properties:
+        net:
+          type: number
+        gross:
+          type: number
+        tax:
+          type: number
+    ConfirmRequest:
+      type: object
+      properties:
+        offerId:
+          type: string
+    OfferStatusResponse:
+      type: object
+      properties:
+        confirmed:
+          type: boolean
+        statusId:
+          type: string
+        pollingTimeoutSeconds:
+          type: integer
+          format: int64
+    CurrentOfferDto:
+      type: object
+      properties:
+        amountGross:
+          type: number
+        amountNet:
+          type: number
+        tax:
+          type: number
+        taxCompensation:
+          $ref: "#/components/schemas/TaxCompensation"
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    AdminToken:
+      type: apiKey
+      name: x-admin-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

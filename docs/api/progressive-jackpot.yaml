@@ -1,0 +1,275 @@
+openapi: 3.0.1
+info:
+  title: Progressive Jackpot
+  description: |-
+    <p>Progressive jackpot API service</p>
+
+    ### Jackpot live updates
+    This service produces jackpot balance updates to [live-data](https://github.com/AlienGain/live-data)
+    service. Live data has specific keys for data filtering.<br>
+    Use <b>progressive_jackpot</b> key to get all live jackpot updates or include <b>brandIdentifier</b> to filter out jackpots for required brand.
+  version: 0.94.0
+servers:
+- url: https://pawa-proxy.replit.app
+  description: Generated server url
+security:
+- Token: []
+  Brand: []
+tags:
+- name: Jackpot
+  description: Operations for retrieving jackpot information
+paths:
+  /api/progressive-jackpot/v1/jackpot/last-ended:
+    post:
+      tags:
+      - Jackpot
+      summary: Find last ended jackpots
+      description: Returns last ended jackpots with winner information for a specific
+        brand and jackpot type. The number of results is limited by the 'take' parameter.
+      operationId: findEndedJackpots
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JackpotsRequest"
+        required: true
+      responses:
+        "200":
+          description: Successfully retrieved last ended jackpots
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponseLastEndedJackpotResponse"
+        "404":
+          description: No ended jackpots found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponseLastEndedJackpotResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/progressive-jackpot/v1/jackpot/active:
+    get:
+      tags:
+      - Jackpot
+      summary: Find active jackpots
+      description: "Retrieves all active jackpots for a specific brand, excluding\
+        \ dry runs. If a user UUID is provided, it also returns information about\
+        \ which jackpots the user is participating in."
+      operationId: findActiveJackpots
+      responses:
+        "404":
+          description: No active jackpots found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveJackpotsResponse"
+        "400":
+          description: Invalid brand identifier supplied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveJackpotsResponse"
+        "200":
+          description: Successfully retrieved active jackpots
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveJackpotsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    JackpotsRequest:
+      required:
+      - jackpotType
+      - take
+      type: object
+      properties:
+        jackpotType:
+          type: string
+          description: Type of jackpot to filter by
+          enum:
+          - SPORT
+          - CASINO
+          - VIRTUALS
+        take:
+          maximum: 30
+          minimum: 1
+          type: integer
+          description: Maximum number of results to return (1-30)
+          format: int32
+      description: Request with jackpot type and limit
+    ListResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+    DisplayNameDs:
+      type: object
+      properties:
+        language:
+          type: string
+        name:
+          type: string
+      description: Jackpot names for Front End in different languages
+    LastEndedJackpotResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Jackpot UUID
+          format: uuid
+        amount:
+          type: number
+          description: Won jackpot value
+        winnerPhone:
+          type: string
+          description: Partly hidden phone number of the winner
+        winnerName:
+          type: string
+          description: Full name of the winner
+        displayName:
+          type: array
+          description: Jackpot user facing name
+          items:
+            $ref: "#/components/schemas/DisplayNameDs"
+        type:
+          type: string
+          description: Jackpot type
+          enum:
+          - SPORT
+          - CASINO
+          - VIRTUALS
+        finalized:
+          type: string
+          description: Progressive jackpot completion date time in UTC
+          format: date-time
+    ListResponseLastEndedJackpotResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: "#/components/schemas/LastEndedJackpotResponse"
+    ActiveJackpotsResponse:
+      type: object
+      properties:
+        jackpots:
+          type: array
+          items:
+            $ref: "#/components/schemas/JackpotParticipantResponse"
+    JackpotParticipantResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique identifier of Jackpot instance
+          format: uuid
+        amount:
+          type: number
+          description: Current Jackpot amount
+        jackpotSubtype:
+          type: string
+          description: "Subtype, e.g. Aviator, JetX, etc"
+        jackpotSubtypeHighlightColor:
+          type: string
+          description: "Color picker for highlight color in HEX, e.g. #00FF00"
+        textColor:
+          type: string
+          description: "Color picker for text color in HEX, e.g. #00FF00"
+        imageUrl:
+          type: string
+          description: Progressive jackpot image url
+        participant:
+          type: boolean
+          description: Current user is participant of Jackpot instance
+  securitySchemes:
+    Token:
+      type: apiKey
+      name: x-pawa-token
+      in: cookie
+    Brand:
+      type: apiKey
+      name: x-pawa-brand
+      in: header

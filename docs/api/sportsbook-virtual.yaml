@@ -1,0 +1,1093 @@
+openapi: 3.1.0
+info:
+  title: sportsbook-virtual
+  description: "# Sportsbook Virtual API Documentation\n\n## Overview\nThe Sportsbook\
+    \ Virtual API provides data for virtual sports events from internal feed-providers\
+    \ to clients. \nIt offers endpoints for accessing virtual sports events, seasons,\
+    \ standings, and related data.\n\nThe Virtual Sports API provides:\n- Virtual\
+    \ events data with odds\n- Season information and configurations\n- Standings\
+    \ and statistics\n- Round information and scheduling\n\nOverview of main data\
+    \ objects:\n- events contain data that related to:\n    - participants, start\
+    \ time;\n    - sport category, competition (aka. tournaments, leagues), region\
+    \ (aka. countries);\n    - scores (aka. result), external widgets (ids);\n   \
+    \ - markets, selections (that contain odds(aka. price, coefficient that tells\
+    \ you how much a user will win relative to their stake))\n- categories contain\
+    \ data that related to:\n    - sport category, competition (aka. tournaments,\
+    \ leagues), region (aka. countries);\n    - counts of live/upcoming/popular/etc.\
+    \ events, priority\n- booking-code (aka. booking-number)\n    - functionality\
+    \ that gives the possibility to share selection's lists between users\n\nOther\
+    \ services supply all related translations, market info (greed-view, sorting,\
+    \ priority, etc.), and popularity/priority coefficients of any objects\n\n## Authentication\
+    \ and Headers\nAlmost all data that we provide is brand- or language-specific.\n\
+    Please provide the following headers with your requests:\n- `x-pawa-brand`: Identifies\
+    \ the brand (required)\n- `x-pawa-language`: Specifies the language (default:\
+    \ 'en')\n\n## API Groups\nThe API is divided into two main groups:\n1. **Public\
+    \ API** - Accessible to all clients, providing sports data, events, odds, etc.\n\
+    2. **Admin API** - Restricted endpoints for administrative operations, requiring\
+    \ additional authentication\n\n## API Versions\nThe API supports multiple versions\
+    \ (v1, v2, v3) with different capabilities and response formats.\nThe latest version\
+    \ is recommended for new integrations.\n\n## Error Handling\nAll **unsuccessful**\
+    \ API calls to the service will be wrapped into **ErrorResponse**.  \nExample\
+    \ response:\n\n```json\n{\n  \"error\": \"UNKNOWN\",\n  \"uuid\": \"9ce5a78a-b864-4502-bfe8-56a12d0ea056\"\
+    ,\n  \"params\": [\n    null\n  ],\n  \"payload\": {\n    \"additionalProp1\"\
+    : {}\n  }\n}\n```\n\n**Possible error codes used in ErrorResponse:**\n- `STANDING_NOT_FOUND`:\
+    \ SPORTSBOOK_STANDING_NOT_FOUND\n"
+  version: 1.602.0
+servers:
+- url: https://pawa-proxy.replit.app
+  description: Generated server url
+security:
+- Token: []
+  Brand: []
+tags:
+- name: Standings
+  description: Return actual info about standings (aka. statistics)
+- name: Price (V2)
+  description: "Return information about selections: market/odds(aka. prices)/event-related\
+    \ data/etc."
+- name: Season
+  description: Return actual info about seasons
+- name: Virtual
+  description: Return actual info about virtual events
+paths:
+  /api/sportsbook/virtual/v2/prices/list:
+    post:
+      tags:
+      - Price (V2)
+      summary: Get a list of selections by IDs
+      operationId: getPricesBySelections
+      parameters:
+      - name: x-pawa-language
+        in: header
+        description: Language
+        required: false
+        schema:
+          type: string
+        example: en
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectionListRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericListResponseOddsSelectionResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/sportsbook/virtual/v2/prices/full/list:
+    post:
+      tags:
+      - Price (V2)
+      summary: Get a list of selections by IDs + information about event & market
+      operationId: getPricesWithEventInfoBySelections
+      parameters:
+      - name: x-pawa-language
+        in: header
+        description: Language
+        required: false
+        schema:
+          type: string
+        example: en
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectionListRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericListResponseEventSelectionTupleResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/sportsbook/virtual/v2/events/list/by-round/{round-id}:
+    get:
+      tags:
+      - Virtual
+      summary: Get virtual events by round ID
+      operationId: getByRoundId
+      parameters:
+      - name: round-id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: "1"
+        example: 1
+      - name: x-pawa-language
+        in: header
+        description: Language
+        required: false
+        schema:
+          type: string
+        example: en
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericListResponseEventWithPricesByMarketResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/sportsbook/virtual/v1/standings/by-season/{season-id}:
+    get:
+      tags:
+      - Standings
+      summary: Get season standing by season ID
+      operationId: getBySeasonId
+      parameters:
+      - name: season-id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: "1"
+        example: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandingResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/sportsbook/virtual/v1/seasons/list/past:
+    get:
+      tags:
+      - Season
+      summary: Get all past seasons (where now.isAfter(season.lastTradingRoundEndTime))
+      operationId: getAll
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericListResponseSeasonResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+  /api/sportsbook/virtual/v1/seasons/list/actual:
+    get:
+      tags:
+      - Season
+      summary: "Get 3 actual seasons (was traded, now traded, will be traded)"
+      operationId: getActual
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericListResponseSeasonResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "403":
+          description: Access Denied
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  uuid:
+                    type: string
+                  params:
+                    type: array
+                    items:
+                      type: string
+                  payload:
+                    type: object
+                    additionalProperties:
+                      type: object
+components:
+  schemas:
+    SelectionListRequest:
+      type: object
+      properties:
+        selections:
+          type: array
+          example:
+          - 100500
+          items:
+            type: string
+          maxItems: 100
+          minItems: 1
+      required:
+      - selections
+    GenericListResponseOddsSelectionResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OddsSelectionResponse"
+        totalCount:
+          type: integer
+          format: int32
+    OddsSelectionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        typeId:
+          type: string
+        price:
+          type: number
+        suspended:
+          type: boolean
+        handicap:
+          type: string
+        probability:
+          $ref: "#/components/schemas/Probability"
+    Probability:
+      type: object
+      properties:
+        win:
+          type: number
+          format: double
+        refund:
+          type: number
+          format: double
+    EventSelectionTupleResponse:
+      type: object
+      properties:
+        event:
+          $ref: "#/components/schemas/EventShortInfo"
+        market:
+          $ref: "#/components/schemas/MarketShortInfo"
+        price:
+          $ref: "#/components/schemas/PriceResponse"
+    EventShortAdditionalInfo:
+      type: object
+      properties:
+        live:
+          type: boolean
+    EventShortInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        additionalInfo:
+          $ref: "#/components/schemas/EventShortAdditionalInfo"
+    GenericListResponseEventSelectionTupleResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventSelectionTupleResponse"
+        totalCount:
+          type: integer
+          format: int32
+    MarketShortAdditionalInfo:
+      type: object
+      properties:
+        cashoutable:
+          type: boolean
+        twoUp:
+          type: boolean
+    MarketShortInfo:
+      type: object
+      properties:
+        marketType:
+          $ref: "#/components/schemas/MarketTypeShortInfo"
+        handicap:
+          type: integer
+          format: int32
+        handicapType:
+          type: string
+        additionalInfo:
+          $ref: "#/components/schemas/MarketShortAdditionalInfo"
+    MarketTypeShortInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        displayName:
+          type: string
+    PriceAdditionalInfo:
+      type: object
+      properties:
+        hot:
+          type: boolean
+    PriceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        typeId:
+          type: string
+        price:
+          type: number
+        suspended:
+          type: boolean
+        handicap:
+          type: string
+        position:
+          type: integer
+          format: int32
+        displayName:
+          type: string
+        additionalInfo:
+          $ref: "#/components/schemas/PriceAdditionalInfo"
+        probability:
+          $ref: "#/components/schemas/Probability"
+    DisplayResponse:
+      type: object
+      properties:
+        minute:
+          type: string
+        currentPeriod:
+          $ref: "#/components/schemas/PeriodResponse"
+        currentServer:
+          type: string
+    EventAdditionalInfo:
+      type: object
+      properties:
+        live:
+          type: boolean
+    EventWithPricesByMarketResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        results:
+          $ref: "#/components/schemas/ResultsResponse"
+        widgets:
+          type: array
+          items:
+            $ref: "#/components/schemas/WidgetResponse"
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParticipantResponse"
+        startTime:
+          type: string
+          format: date-time
+        markets:
+          type: array
+          description: Market grouped by market type
+          items:
+            $ref: "#/components/schemas/GroupedMarketResponse"
+        totalMarketCount:
+          type: integer
+          format: int64
+        category:
+          $ref: "#/components/schemas/IdName"
+        region:
+          $ref: "#/components/schemas/IdName"
+        competition:
+          $ref: "#/components/schemas/IdName"
+        additionalInfo:
+          $ref: "#/components/schemas/EventAdditionalInfo"
+        score:
+          type: number
+          format: double
+        neutralVenue:
+          type: boolean
+        inplayBooked:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    GenericListResponseEventWithPricesByMarketResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventWithPricesByMarketResponse"
+        totalCount:
+          type: integer
+          format: int32
+    GroupedMarketResponse:
+      type: object
+      properties:
+        marketType:
+          $ref: "#/components/schemas/MarketType"
+        row:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketDto"
+        displayNameRows:
+          type: array
+          description: If markets has row-names to display we put it to this array
+          items:
+            type: string
+        displayNameColumns:
+          type: array
+          description: If markets has column-names to display we put it to this array
+          items:
+            type: string
+        additionalInfo:
+          $ref: "#/components/schemas/MarketAdditionalInfo"
+    IdName:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    MarketAdditionalInfo:
+      type: object
+      properties:
+        boosted:
+          type: boolean
+        cashoutable:
+          type: boolean
+        twoUp:
+          type: boolean
+    MarketDto:
+      type: object
+      properties:
+        id:
+          type: string
+        handicap:
+          type: integer
+          format: int32
+        formattedHandicap:
+          type: string
+        prices:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriceResponse"
+    MarketType:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        displayName:
+          type: string
+        explainer:
+          type: string
+        priority:
+          type: integer
+          format: int32
+        tabs:
+          type: array
+          items:
+            type: string
+        handicapType:
+          type: string
+        priceColumnCount:
+          type: integer
+          format: int32
+        priceSortingMethod:
+          type: string
+    ParticipantPeriodResultResponse:
+      type: object
+      properties:
+        participant:
+          $ref: "#/components/schemas/ParticipantResponse"
+        periodResults:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodResultResponse"
+    ParticipantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        position:
+          type: integer
+          format: int32
+    PeriodResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          example: Full Time (Excluding Overtime)
+        slug:
+          type: string
+          example: FULL_TIME_EXCLUDING_OVERTIME
+    PeriodResultResponse:
+      type: object
+      properties:
+        period:
+          $ref: "#/components/schemas/PeriodResponse"
+        result:
+          type: string
+          example: 1
+        type:
+          type: string
+          example: SCORE
+    ResultsResponse:
+      type: object
+      properties:
+        display:
+          $ref: "#/components/schemas/DisplayResponse"
+          description: Current minute & period
+        participantPeriodResults:
+          type: array
+          description: Participant & info by periods
+          items:
+            $ref: "#/components/schemas/ParticipantPeriodResultResponse"
+    WidgetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+    CompetitionStandingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        participantStandings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParticipantStandingResponse"
+    ParticipantStandingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        position:
+          type: integer
+          format: int32
+        points:
+          $ref: "#/components/schemas/PointsStandingResponse"
+        scoreStanding:
+          $ref: "#/components/schemas/ScoreStandingResponse"
+        form:
+          type: array
+          description: Last 5 results (L/D/W == lose/draw/win)
+          items:
+            type: string
+    PointsStandingResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+        won:
+          type: integer
+          format: int32
+        draw:
+          type: integer
+          format: int32
+        lost:
+          type: integer
+          format: int32
+    ScoreStandingResponse:
+      type: object
+      properties:
+        scored:
+          type: integer
+          format: int32
+        conceded:
+          type: integer
+          format: int32
+    StandingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Season ID
+        name:
+          type: string
+        competitionStandings:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompetitionStandingResponse"
+    GenericListResponseSeasonResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonResponse"
+        totalCount:
+          type: integer
+          format: int32
+    RoundResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        tradingTime:
+          $ref: "#/components/schemas/TradingInfoResponse"
+    SeasonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        matchSeconds:
+          type: integer
+          format: int32
+          description: Number of seconds in virtual world for live
+        realWorldMatchSeconds:
+          type: integer
+          format: int32
+          description: Number of seconds in real world for live
+        tradingTime:
+          $ref: "#/components/schemas/TradingInfoResponse"
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoundResponse"
+    TradingInfoResponse:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+  securitySchemes:
+    Brand-Identifier:
+      type: apiKey
+      description: "Brand identifier (e.g., 'testpawa-estonia'). Required value"
+      name: x-pawa-brand
+      in: header
+    Token:
+      type: apiKey
+      description: Token is bind to user session.
+      name: x-pawa-token
+      in: cookie
+    Admin-Token:
+      type: apiKey
+      description: Admin-Token is bind to admin session.
+      name: x-pawa-token-admin
+      in: cookie
